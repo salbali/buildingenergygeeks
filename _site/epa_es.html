@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Using only meter data and outdoor air temperature, the energy signature method allows a very simple, but sometimes quite informative, energy performance asse...">
+<meta name="keywords" content="assessment,  energy, signature, performance, assessment, building">
+<title>The energy signature method | Data science for building energy performance</title>
+<link rel="stylesheet" href="css/syntax.css">
+
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<!--<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">-->
+<link rel="stylesheet" href="css/modern-business.css">
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link rel="stylesheet" href="css/customstyles.css">
+<link rel="stylesheet" href="css/boxshadowproperties.css">
+<!-- most color styles are extracted out to here -->
+<link rel="stylesheet" href="css/theme-teal.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="js/jquery.navgoco.min.js"></script>
+
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<!-- Anchor.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.2.0/anchor.min.js"></script>
+<script src="js/toc.js"></script>
+<script src="js/customscripts.js"></script>
+
+<link rel="shortcut icon" href="images/favicon.ico">
+
+<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]-->
+
+<link rel="alternate" type="application/rss+xml" title="buildingenergygeeks" href="http://localhost:4000/feed.xml">
+
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize navgoco with default options
+            $("#mysidebar").navgoco({
+                caretHtml: '',
+                accordion: true,
+                openClass: 'active', // open
+                save: false, // leave false or nav highlighting doesn't work right
+                cookie: {
+                    name: 'navgoco',
+                    expires: false,
+                    path: '/'
+                },
+                slide: {
+                    duration: 400,
+                    easing: 'swing'
+                }
+            });
+
+            $("#collapseAll").click(function(e) {
+                e.preventDefault();
+                $("#mysidebar").navgoco('toggle', false);
+            });
+
+            $("#expandAll").click(function(e) {
+                e.preventDefault();
+                $("#mysidebar").navgoco('toggle', true);
+            });
+
+        });
+
+    </script>
+    <script>
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+    </script>
+    <script>
+        $(document).ready(function() {
+            $("#tg-sb-link").click(function() {
+                $("#tg-sb-sidebar").toggle();
+                $("#tg-sb-content").toggleClass('col-md-9');
+                $("#tg-sb-content").toggleClass('col-md-12');
+                $("#tg-sb-icon").toggleClass('fa-toggle-on');
+                $("#tg-sb-icon").toggleClass('fa-toggle-off');
+            });
+        });
+    </script>
+    
+
+</head>
+<body>
+<!-- Navigation -->
+<nav class="navbar navbar-inverse navbar-static-top">
+    <div class="container topnavlinks">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="fa fa-home fa-lg navbar-brand" href="index.html">&nbsp;<span class="projectTitle"> Building Energy Geeks</span></a>
+        </div>
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                <!-- toggle sidebar button -->
+                <li><a id="tg-sb-link" href="#"><i id="tg-sb-icon" class="fa fa-toggle-on"></i> Nav</a></li>
+                <!-- entries without drop-downs appear here -->
+
+
+
+
+                
+                
+                
+                <li><a href="index_data.html">Home</a></li>
+                
+                
+                
+                <li><a href="http://discourse.buildingenergygeeks.org/" target="_blank" rel="noopener">Forum</a></li>
+                
+                
+                
+                <!-- entries with drop-downs appear here -->
+                <!-- conditional logic to control which topnav appears for the audience defined in the configuration file.-->
+                
+                
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Categories<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        
+                        
+                        <li><a href="index_data.html">Data analysis</a></li>
+                        
+                        
+                        
+                        <li><a href="index_hhtb.html">Handbook of heat transfer in buildings</a></li>
+                        
+                        
+                        
+                        <li><a href="index_ebe.html">EBE clim (fr)</a></li>
+                        
+                        
+                    </ul>
+                </li>
+                
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Links<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        
+                        
+                        <li><a href="http://simonrouchier.org/" target="_blank" rel="noopener">Author's page</a></li>
+                        
+                        
+                        
+                        <li><a href="https://github.com/srouchier/buildingenergygeeks" target="_blank" rel="noopener">GitHub</a></li>
+                        
+                        
+                        
+                        <li><a href="https://locie.github.io/bayreb/" target="_blank" rel="noopener">BAYREB project</a></li>
+                        
+                        
+                    </ul>
+                </li>
+                
+                
+                
+                <!--comment out this block if you want to hide search-->
+                <li>
+                    <!--start search-->
+                    <div id="search-demo-container">
+                        <input type="text" id="search-input" placeholder="search...">
+                        <ul id="results-container"></ul>
+                    </div>
+                    <script src="js/jekyll-search.js" type="text/javascript"></script>
+                    <script type="text/javascript">
+                            SimpleJekyllSearch.init({
+                                searchInput: document.getElementById('search-input'),
+                                resultsContainer: document.getElementById('results-container'),
+                                dataSource: 'search.json',
+                                searchResultTemplate: '<li><a href="{url}" title="The energy signature method">{title}</a></li>',
+                    noResultsText: 'No results found.',
+                            limit: 10,
+                            fuzzy: true,
+                    })
+                    </script>
+                    <!--end search-->
+                </li>
+            </ul>
+        </div>
+        </div>
+        <!-- /.container -->
+</nav>
+
+<!-- Page Content -->
+<div class="container">
+  <div id="main">
+    <!-- Content Row -->
+    <div class="row">
+        
+        
+            <!-- Sidebar Column -->
+            <div class="col-md-3" id="tg-sb-sidebar">
+                
+
+<ul id="mysidebar" class="nav">
+  <li class="sidebarTitle">Contents </li>
+  
+  
+  
+      
+  
+  <li>
+      <a title="Energy performance assessment" href="#">Energy performance assessment</a>
+      <ul>
+          
+          
+          
+          <li class="active"><a title="Energy signature" href="epa_es.html">Energy signature</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="Linear regression" href="epa_lr.html">Linear regression</a></li>
+          
+          
+          
+          
+      </ul>
+   </li>
+     
+      
+  
+  <li>
+      <a title="State-space models" href="#">State-space models</a>
+      <ul>
+          
+          
+          
+          <li><a title="Overview" href="ssm_overview.html">Overview</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="The most simple RC model" href="ssm_rc.html">The most simple RC model</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="The Kalman filter" href="ssm_kalman.html">The Kalman filter</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="The pySIP library" href="ssm_pysip.html">The pySIP library</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="Latent force models" href="ssm_lfm.html">Latent force models</a></li>
+          
+          
+          
+          
+      </ul>
+   </li>
+     
+      
+  
+  <li>
+      <a title="Material characterisation" href="#">Material characterisation</a>
+      <ul>
+          
+          
+          
+          <li><a title="Inverse heat conduction problem" href="mat_ihcp.html">Inverse heat conduction problem</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="Hygric characterisation" href="mat_hygric.html">Hygric characterisation</a></li>
+          
+          
+          
+          
+      </ul>
+   </li>
+     
+      
+      
+      <!-- if you aren't using the accordion, uncomment this block:
+         <p class="external">
+             <a href="#" id="collapseAll">Collapse All</a> | <a href="#" id="expandAll">Expand All</a>
+         </p>
+         -->
+</ul>
+
+<!-- this highlights the active parent class in the navgoco sidebar. this is critical so that the parent expands when you're viewing a page. This must appear below the sidebar code above. Otherwise, if placed inside customscripts.js, the script runs before the sidebar code runs and the class never gets inserted.-->
+<script>$("li.active").parents('li').toggleClass("active");</script>
+
+            </div>
+            
+        
+
+        <!-- Content Column -->
+        <div class="col-md-9" id="tg-sb-content">
+            <div class="post-header">
+   <h1 class="post-title-main">The energy signature method</h1>
+</div>
+
+
+
+<div class="post-content">
+
+   
+    <div class="summary">Using only meter data and outdoor air temperature, the energy signature method allows a very simple, but sometimes quite informative, energy performance assessment. It can be used to identify heating and cooling energy consumption in long-term trends, and to evaluate the outcome of energy conservation measures.</div>
+   
+
+    
+    
+<!-- this handles the automatic toc. use ## for subheads to auto-generate the on-page minitoc. if you use html tags, you must supply an ID for the heading element in order for it to appear in the minitoc. -->
+<script>
+$( document ).ready(function() {
+  // Handler for .ready() called.
+
+$('#toc').toc({ minimumHeaders: 0, listType: 'ul', showSpeed: 0, headers: 'h2,h3,h4' });
+
+/* this offset helps account for the space taken up by the floating toolbar. */
+$('#toc').on('click', 'a', function() {
+  var target = $(this.getAttribute('href'))
+    , scroll_target = target.offset().top
+
+  $(window).scrollTop(scroll_target - 10);
+  return false
+})
+  
+});
+</script>
+
+<div id="toc"></div>
+
+    
+
+
+    
+
+    <a target="_blank" rel="noopener" href="https://github.com/srouchier/buildingenergygeeks/blob/gh-pages/pages/data/epa_es.md" class="btn btn-default githubEditButton" role="button"><i class="fa fa-github fa-lg"></i> Edit me</a>
+
+    
+
+   <p>The energy signature of a building is a very simple model of its energy consumption profile (all energies combined) as a function of the outdoor temperature. Provided a long enough monitoring period of a building, the method is able to provide a crude estimation of its heat loss coefficient (HLC), and to separate its energy consumption into two (or three) main parts: heating and/or cooling, and other uses. Using a trained energy signature model to predict the energy use is possible, but comes with a large uncertainty.</p>
+
+<p>The appeal of this method is that the data we need to train the model is very easy to obtain:</p>
+<ul>
+  <li>Outdoor air temperature</li>
+  <li>Energy consumption</li>
+</ul>
+
+<p>We don’t even need a short time step between each meter reading, as the data will be resampled (averaged) over samples of one or several days.</p>
+
+<h2 id="the-model">The model</h2>
+
+<p>The model is written here in terms of the average power <script type="math/tex">\Phi</script> (W) between energy readings (kWh).</p>
+
+<p>The total electrical power used in a building is decomposed into three parts: the baseline consumption $\Phi_b$ (lighting, appliances, DHW…), heating power <script type="math/tex">\Phi_h</script> and cooling power <script type="math/tex">\Phi_c</script></p>
+
+<script type="math/tex; mode=display">\Phi = \Phi_b + \Phi_h + \Phi_c</script>
+
+<p>The energy signature method relates the heating and cooling energy use to easily measured environmental parameters, typically the outdoor temperature. The model relies on the following, very convenient hypotheses:</p>
+<ul>
+  <li>Steady-state: each data point is the average of readings over a sufficiently long period (several days), so that dynamic effects can be overlooked.</li>
+  <li>The baseline consumption <script type="math/tex">\Phi_b</script> is constant over this broad sampling frequency.</li>
+  <li>The indoor temperature is assumed to be quasi-constant, so that heating only is needed when the outdoor temperature <script type="math/tex">T_e</script> is lower than a base temperature <script type="math/tex">T_{b1}</script>. The heating power is then only proportional to the HLC.</li>
+  <li>The influence of all other environmental factors is neglected.</li>
+</ul>
+
+<p>The heating power is then approached by the following equations:</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+\Phi_h & = \mathrm{HLC}_1 \, (T_{b1}-T_e) \quad & \mathrm{if} \quad T_e \leq T_{b1} \\
+\Phi_h & = 0 \quad & \mathrm{if} \quad T_e > T_{b1}
+\end{align} %]]></script>
+
+<p><img src="images/data/epa_es_00.png" style="width: 250px;" /></p>
+
+<p>If the building has air conditioning, the same relation can be assumed for cooling, if the outdoor temperature exceeds a threshold <script type="math/tex">T_{b2}</script>:</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+\Phi_c & = 0 \quad & \mathrm{if} \quad T_e < T_{b2}\\
+\Phi_c & = \mathrm{HLC}_2 \, (T_e - T_{b2}) \quad & \mathrm{if} \quad T_e \geq T_{b2}
+\end{align} %]]></script>
+
+<p>The model therefore has either three or five unknown parameters:</p>
+<ul>
+  <li>The baseline power <script type="math/tex">\Phi_b</script></li>
+  <li>The heat loss coefficient HLC, which may have a different value in heating than in cooling conditions</li>
+  <li>One or two threshold temperatures <script type="math/tex">T_b</script></li>
+</ul>
+
+<h2 id="the-data">The data</h2>
+
+<p>The data used in this example to illustrate the energy signature method is the hourly energy consumption and outdoor air temperature data for 11 commercial buildings (office/retail), <a href="https://openei.org/datasets/dataset/consumption-outdoor-air-temperature-11-commercial-buildings">publicly available here</a>.</p>
+
+<p>The code written below supposes that the data files have been downloaded and saved to a <code class="language-plaintext highlighter-rouge">/data</code> folder. We are only going to use three of the available data files, which are three consecutive years from a single office building: <code class="language-plaintext highlighter-rouge">building60preoffice.csv</code>, <code class="language-plaintext highlighter-rouge">building61duringoffice.csv</code> and <code class="language-plaintext highlighter-rouge">building62postoffice.csv</code>.</p>
+
+<p>It starts by some imports.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="n">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+</code></pre></div></div>
+
+<p>A data analysis exercise usually starts by taking a look at the formatting of the data files.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">'data/building60preoffice.csv'</span><span class="p">)</span>
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div></div>
+
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Date</th>
+      <th>OAT</th>
+      <th>Building 6 kW</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1/2/2009 0:00</td>
+      <td>41.6</td>
+      <td>23.3</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1/2/2009 1:00</td>
+      <td>40.9</td>
+      <td>23.1</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>1/2/2009 2:00</td>
+      <td>39.5</td>
+      <td>23.7</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>1/2/2009 3:00</td>
+      <td>36.3</td>
+      <td>29.1</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>1/2/2009 4:00</td>
+      <td>32.8</td>
+      <td>35.6</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>The datafile is already “clean” with no missing value (one can check this with <code class="language-plaintext highlighter-rouge">np.any(pd.isna(df))</code> for instance). The only data processing we will do before defining and training the model is:</p>
+<ul>
+  <li>Translating the <code class="language-plaintext highlighter-rouge">Date</code> column into a datetime object which Python understands as temporal data</li>
+  <li>Converting the outdoor air temperature <code class="language-plaintext highlighter-rouge">OAT</code> from (F) to (C) because the data originates from the USA</li>
+  <li>Averaging the data over periods of one day</li>
+  <li>Noting the day of the week, because this factor usually has an impact on the consumption of retail and office buildings</li>
+</ul>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s">'Date'</span><span class="p">]),</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">df</span><span class="p">[</span><span class="s">'Te'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s">'OAT'</span><span class="p">]</span><span class="o">-</span><span class="mi">32</span><span class="p">)</span> <span class="o">*</span> <span class="mi">5</span><span class="o">/</span><span class="mi">9</span>
+
+<span class="c1"># New dataframe for the daily averaged data
+</span><span class="n">df_day</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s">'D'</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+
+<span class="c1"># Week days
+</span><span class="n">df_day</span><span class="p">[</span><span class="s">'week_day'</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">df_day</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">_</span><span class="p">]</span><span class="o">.</span><span class="n">weekday</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_day</span><span class="p">))]</span>
+<span class="n">weekend</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_day</span><span class="p">[</span><span class="s">'week_day'</span><span class="p">]</span><span class="o">==</span><span class="mi">5</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">df_day</span><span class="p">[</span><span class="s">'week_day'</span><span class="p">]</span><span class="o">==</span><span class="mi">6</span><span class="p">)</span>
+
+<span class="n">df_day</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div></div>
+
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Date</th>
+      <th>OAT</th>
+      <th>Building 6 kW</th>
+      <th>Te</th>
+      <th>week_day</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2009-01-02</th>
+      <td>33.375000</td>
+      <td>36.787500</td>
+      <td>0.763889</td>
+      <td>4</td>
+    </tr>
+    <tr>
+      <th>2009-01-03</th>
+      <td>18.908333</td>
+      <td>44.187500</td>
+      <td>-7.273148</td>
+      <td>5</td>
+    </tr>
+    <tr>
+      <th>2009-01-04</th>
+      <td>17.700000</td>
+      <td>48.645833</td>
+      <td>-7.944444</td>
+      <td>6</td>
+    </tr>
+    <tr>
+      <th>2009-01-05</th>
+      <td>23.445833</td>
+      <td>51.983333</td>
+      <td>-4.752315</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <th>2009-01-06</th>
+      <td>45.941667</td>
+      <td>41.891667</td>
+      <td>7.745370</td>
+      <td>1</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>We can now take a look at the relationship between air temperature and power, in order to see if there is a trend.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">df_day</span><span class="p">[</span><span class="s">'Te'</span><span class="p">][</span><span class="o">~</span><span class="n">weekend</span><span class="p">],</span> <span class="n">df_day</span><span class="p">[</span><span class="s">'Building 6 kW'</span><span class="p">][</span><span class="o">~</span><span class="n">weekend</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s">'Week day'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">df_day</span><span class="p">[</span><span class="s">'Te'</span><span class="p">][</span><span class="n">weekend</span><span class="p">],</span> <span class="n">df_day</span><span class="p">[</span><span class="s">'Building 6 kW'</span><span class="p">][</span><span class="n">weekend</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s">'Week end'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Outdoor temperature (C)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'Mean daily power (kW)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><img src="images/data/epa_es_01.png" alt="png" /></p>
+
+<p>Each dot is one day. This plot clearly shows two things:</p>
+<ul>
+  <li>Week days and week ends are separated: in the following, we should only keep week days for the energy signature model.</li>
+  <li>The power is clearly influenced by low and high temperatures. The trend seems close to linear on each side, confirming the choice of the energy signature model (this particular building was not chosen randomly…)</li>
+</ul>
+
+<h2 id="model-definition-and-training">Model definition and training</h2>
+
+<p>The energy signature model is an expression of the total electric consumption of a building as a function of the outdoor temperature and up to five fixed parameters. The notations of the code below match the equations given earlier.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">signature</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">Phi_b</span><span class="p">,</span> <span class="n">T_b1</span><span class="p">,</span> <span class="n">T_b2</span><span class="p">,</span> <span class="n">HLC_1</span><span class="p">,</span> <span class="n">HLC_2</span><span class="p">):</span>
+    <span class="s">"""
+    input : temperature T, and five parameters
+    output: power P
+    """</span>
+
+    <span class="n">P</span> <span class="o">=</span> <span class="n">Phi_b</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">T</span><span class="p">))</span>
+
+    <span class="n">mask1</span> <span class="o">=</span> <span class="n">T</span> <span class="o">&lt;</span> <span class="n">T_b1</span>
+    <span class="n">P</span><span class="p">[</span><span class="n">mask1</span><span class="p">]</span> <span class="o">+=</span> <span class="n">HLC_1</span> <span class="o">*</span> <span class="p">(</span><span class="n">T_b1</span><span class="o">-</span><span class="n">T</span><span class="p">[</span><span class="n">mask1</span><span class="p">])</span>
+
+    <span class="n">mask2</span> <span class="o">=</span> <span class="n">T</span> <span class="o">&gt;</span> <span class="n">T_b2</span>
+    <span class="n">P</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span> <span class="o">+=</span> <span class="n">HLC_2</span> <span class="o">*</span> <span class="p">(</span><span class="n">T</span><span class="p">[</span><span class="n">mask2</span><span class="p">]</span><span class="o">-</span><span class="n">T_b2</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">P</span>
+</code></pre></div></div>
+
+<p>Now that this evaluation function is defined, we can use it in a curve fitting algorithm which will find the optimal parameters to match a given dataset: the <code class="language-plaintext highlighter-rouge">curve_fit</code> method of the <code class="language-plaintext highlighter-rouge">scipy.optimize</code> library. The week end days are filtered out. The method requires a starting point <code class="language-plaintext highlighter-rouge">p0</code> for the parameters, which we can estimate from the graph above.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">curve_fit</span>
+
+<span class="n">T</span> <span class="o">=</span> <span class="n">df_day</span><span class="p">[</span><span class="s">'Te'</span><span class="p">][</span><span class="o">~</span><span class="n">weekend</span><span class="p">]</span>
+<span class="n">P</span> <span class="o">=</span> <span class="n">df_day</span><span class="p">[</span><span class="s">'Building 6 kW'</span><span class="p">][</span><span class="o">~</span><span class="n">weekend</span><span class="p">]</span>
+
+<span class="n">popt</span><span class="p">,</span> <span class="n">pcov</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span><span class="n">signature</span><span class="p">,</span>
+                       <span class="n">xdata</span> <span class="o">=</span> <span class="n">T</span><span class="p">,</span>
+                       <span class="n">ydata</span> <span class="o">=</span> <span class="n">P</span><span class="p">,</span>
+                       <span class="n">p0</span> <span class="o">=</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">])</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s">'Baseline power: </span><span class="si">%.2</span><span class="s">f kW'</span> <span class="o">%</span> <span class="n">popt</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'Lower threshold temperature: </span><span class="si">%.2</span><span class="s">f C'</span> <span class="o">%</span> <span class="n">popt</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'Upper threshold temperature: </span><span class="si">%.2</span><span class="s">f C'</span> <span class="o">%</span> <span class="n">popt</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'HLC (winter): </span><span class="si">%.2</span><span class="s">f kW/K'</span> <span class="o">%</span> <span class="n">popt</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'HLC (summer): </span><span class="si">%.2</span><span class="s">f kW/K'</span> <span class="o">%</span> <span class="n">popt</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Baseline power: 34.57 kW
+Lower threshold temperature: 6.53 C
+Upper threshold temperature: 15.62 C
+HLC (winter): 1.38 kW/K
+HLC (summer): 1.18 kW/K
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Plot the results: comparing the fitted model with its data
+</span><span class="n">xx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="n">T</span><span class="o">.</span><span class="nb">min</span><span class="p">(),</span> <span class="n">T</span><span class="o">.</span><span class="nb">max</span><span class="p">())</span>
+<span class="n">yy</span> <span class="o">=</span> <span class="n">signature</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">popt</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">popt</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">popt</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">popt</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">popt</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">T</span><span class="p">,</span> <span class="n">P</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'data'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">'teal'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">xx</span><span class="p">,</span> <span class="n">yy</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'model'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">'red'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Outdoor temperature (C)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'Mean daily power (kW)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><img src="images/data/epa_es_02.png" alt="png" /></p>
+
+<p>The model seems well fitted with the trend in the data. As this is a simple exercise, we are not analysing the indicators of statistical significance of the parameters: this will be done in other methods such as ordinary linear regression.</p>
+
+<h2 id="further-questions">Further questions</h2>
+
+<h3 id="comparing-the-hlc-estimation-across-several-years">Comparing the HLC estimation across several years</h3>
+
+<p>Since we have three data files for the same building, and each file is one year of measurements, we can check if the estimation of HLC is consistent across these years. In order to do this quickly, let us automate the steps described above into a single function that will return the optimal parameters as a function of only the datafile (this function requires that the labels of all files match).</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">prepare_data</span><span class="p">(</span><span class="n">datafile</span><span class="p">):</span>
+
+    <span class="c1"># Read data
+</span>    <span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="n">datafile</span><span class="p">)</span>
+    <span class="c1"># Process the data
+</span>    <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s">'Date'</span><span class="p">]),</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">df</span><span class="p">[</span><span class="s">'Te'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s">'OAT'</span><span class="p">]</span><span class="o">-</span><span class="mi">32</span><span class="p">)</span> <span class="o">*</span> <span class="mi">5</span><span class="o">/</span><span class="mi">9</span>
+    <span class="c1"># New dataframe for the daily averaged data
+</span>    <span class="n">df_day</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span><span class="s">'D'</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="c1"># Week days
+</span>    <span class="n">df_day</span><span class="p">[</span><span class="s">'week_day'</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">df_day</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="n">_</span><span class="p">]</span><span class="o">.</span><span class="n">weekday</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_day</span><span class="p">))]</span>
+    <span class="n">df_day</span><span class="p">[</span><span class="s">'weekend'</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">df_day</span><span class="p">[</span><span class="s">'week_day'</span><span class="p">]</span><span class="o">==</span><span class="mi">5</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">df_day</span><span class="p">[</span><span class="s">'week_day'</span><span class="p">]</span><span class="o">==</span><span class="mi">6</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">df_day</span>
+
+
+<span class="k">def</span> <span class="nf">estimate_hlc</span><span class="p">(</span><span class="n">datafile</span><span class="p">):</span>
+
+    <span class="n">df_day</span> <span class="o">=</span> <span class="n">prepare_data</span><span class="p">(</span><span class="n">datafile</span><span class="p">)</span>
+
+    <span class="n">popt</span><span class="p">,</span> <span class="n">pcov</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span><span class="n">signature</span><span class="p">,</span>
+                           <span class="n">xdata</span> <span class="o">=</span> <span class="n">df_day</span><span class="p">[</span><span class="s">'Te'</span><span class="p">][</span><span class="o">~</span><span class="n">df_day</span><span class="p">[</span><span class="s">'weekend'</span><span class="p">]],</span>
+                           <span class="n">ydata</span> <span class="o">=</span> <span class="n">df_day</span><span class="p">[</span><span class="s">'Building 6 kW'</span><span class="p">][</span><span class="o">~</span><span class="n">df_day</span><span class="p">[</span><span class="s">'weekend'</span><span class="p">]],</span>
+                           <span class="n">p0</span> <span class="o">=</span> <span class="p">[</span><span class="mi">20</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">popt</span>
+
+<span class="n">popt_0</span> <span class="o">=</span> <span class="n">estimate_hlc</span><span class="p">(</span><span class="s">'data/building60preoffice.csv'</span><span class="p">)</span>
+<span class="n">popt_1</span> <span class="o">=</span> <span class="n">estimate_hlc</span><span class="p">(</span><span class="s">'data/building61duringoffice.csv'</span><span class="p">)</span>
+<span class="n">popt_2</span> <span class="o">=</span> <span class="n">estimate_hlc</span><span class="p">(</span><span class="s">'data/building62postoffice.csv'</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s">'HLC (heating): </span><span class="si">%.2</span><span class="s">f kW/K, </span><span class="si">%.2</span><span class="s">f kW/K, </span><span class="si">%.2</span><span class="s">f kW/K'</span> <span class="o">%</span> <span class="p">(</span><span class="n">popt_0</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">popt_1</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">popt_2</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'HLC (cooling): </span><span class="si">%.2</span><span class="s">f kW/K, </span><span class="si">%.2</span><span class="s">f kW/K, </span><span class="si">%.2</span><span class="s">f kW/K'</span> <span class="o">%</span> <span class="p">(</span><span class="n">popt_0</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">popt_1</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">popt_2</span><span class="p">[</span><span class="mi">4</span><span class="p">]))</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>HLC (heating): 1.38 kW/K, 1.25 kW/K, 2.03 kW/K
+HLC (cooling): 1.18 kW/K, 0.98 kW/K, 0.89 kW/K
+</code></pre></div></div>
+
+<p>The values are somehow consistent, but the last year of observation shows a much higher heating consumption relatively to the outdoor temperature. This method can for instance be used to estimate the impact of energy conservation measures.</p>
+
+<h3 id="predicting-the-energy-use">Predicting the energy use</h3>
+
+<p>Another purpose of the energy signature model is to predict the energy use of a building, supposing that forecasts of the outdoor temperature are available. In the example below, we will see if the parameters learned in the first year of measurements, using <code class="language-plaintext highlighter-rouge">building60preoffice.csv</code>, can forecast the consumption observed on the next two years.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Loading and processing the data files for the second and third years
+</span><span class="n">df_day_1</span> <span class="o">=</span> <span class="n">prepare_data</span><span class="p">(</span><span class="s">'data/building61duringoffice.csv'</span><span class="p">)</span>
+<span class="n">df_day_2</span> <span class="o">=</span> <span class="n">prepare_data</span><span class="p">(</span><span class="s">'data/building62postoffice.csv'</span><span class="p">)</span>
+
+<span class="c1"># Measured consumptions and temperatures
+</span><span class="n">T_1</span> <span class="o">=</span> <span class="n">df_day_1</span><span class="p">[</span><span class="s">'Te'</span><span class="p">][</span><span class="o">~</span><span class="n">df_day_1</span><span class="p">[</span><span class="s">'weekend'</span><span class="p">]]</span>
+<span class="n">T_2</span> <span class="o">=</span> <span class="n">df_day_2</span><span class="p">[</span><span class="s">'Te'</span><span class="p">][</span><span class="o">~</span><span class="n">df_day_2</span><span class="p">[</span><span class="s">'weekend'</span><span class="p">]]</span>
+<span class="n">P_real_1</span> <span class="o">=</span> <span class="n">df_day_1</span><span class="p">[</span><span class="s">'Building 6 kW'</span><span class="p">][</span><span class="o">~</span><span class="n">df_day_1</span><span class="p">[</span><span class="s">'weekend'</span><span class="p">]]</span>
+<span class="n">P_real_2</span> <span class="o">=</span> <span class="n">df_day_2</span><span class="p">[</span><span class="s">'Building 6 kW'</span><span class="p">][</span><span class="o">~</span><span class="n">df_day_2</span><span class="p">[</span><span class="s">'weekend'</span><span class="p">]]</span>
+<span class="c1"># Consumptions of the same years, but predicted by the model trained with the first dataset
+</span><span class="n">P_pred_1</span> <span class="o">=</span> <span class="n">signature</span><span class="p">(</span><span class="n">T_1</span><span class="p">,</span> <span class="n">popt_0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">popt_0</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">popt_0</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">popt_0</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">popt_0</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+<span class="n">P_pred_2</span> <span class="o">=</span> <span class="n">signature</span><span class="p">(</span><span class="n">T_2</span><span class="p">,</span> <span class="n">popt_0</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">popt_0</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">popt_0</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">popt_0</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">popt_0</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">121</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">T_1</span><span class="p">,</span> <span class="n">P_real_1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'data'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">'teal'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">T_1</span><span class="p">,</span> <span class="n">P_pred_1</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'prediction'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">'red'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Outdoor temperature (C)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'Mean daily power (kW)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">122</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">T_2</span><span class="p">,</span> <span class="n">P_real_2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'data'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">'teal'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">T_2</span><span class="p">,</span> <span class="n">P_pred_2</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'prediction'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">'red'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Outdoor temperature (C)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'Mean daily power (kW)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><img src="images/data/epa_es_03.png" alt="png" /></p>
+
+<p>We can clearly see that the model trained on the first year of data overestimates the actual consumption of the next two years. The main difference seems to be the baseline consumption which has significantly decreased, although it does not seem that the HLC has. This might be the consequence of energy conservation measures concerning other energy uses than heating and cooling.</p>
+
+
+    <div class="tags">
+        
+        <b>Tags: </b>
+        
+        
+        
+        
+        
+    </div>
+
+
+
+
+</div>
+
+<hr class="shaded"/>
+
+<footer>
+            <div class="row">
+                <div class="col-lg-12 footer">
+               &copy;2020 USMB. All rights reserved. <br />
+<span>Page last updated:</span> March 29, 2020<br/> Site last generated: Apr 5, 2020 <br />
+<p><img src="images/company_logo.png" alt="Company logo"/></p>
+                </div>
+            </div>
+</footer>
+
+
+        </div>
+    <!-- /.row -->
+</div>
+<!-- /.container -->
+</div>
+<!-- /#main -->
+    </div>
+
+</body>
+
+</html>

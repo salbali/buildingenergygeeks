@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="If a model does not fully describe the thermal behaviour of the building, and this discrepancy is not somehow explicitely accounted for, then the parameter e...">
+<meta name="keywords" content="assessment,  keyword1, keyword2, keyword3">
+<title>Implementing a Kalman filter | Data science for building energy performance</title>
+<link rel="stylesheet" href="css/syntax.css">
+
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<!--<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">-->
+<link rel="stylesheet" href="css/modern-business.css">
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link rel="stylesheet" href="css/customstyles.css">
+<link rel="stylesheet" href="css/boxshadowproperties.css">
+<!-- most color styles are extracted out to here -->
+<link rel="stylesheet" href="css/theme-teal.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="js/jquery.navgoco.min.js"></script>
+
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<!-- Anchor.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.2.0/anchor.min.js"></script>
+<script src="js/toc.js"></script>
+<script src="js/customscripts.js"></script>
+
+<link rel="shortcut icon" href="images/favicon.ico">
+
+<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]-->
+
+<link rel="alternate" type="application/rss+xml" title="buildingenergygeeks" href="http://localhost:4000/feed.xml">
+
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize navgoco with default options
+            $("#mysidebar").navgoco({
+                caretHtml: '',
+                accordion: true,
+                openClass: 'active', // open
+                save: false, // leave false or nav highlighting doesn't work right
+                cookie: {
+                    name: 'navgoco',
+                    expires: false,
+                    path: '/'
+                },
+                slide: {
+                    duration: 400,
+                    easing: 'swing'
+                }
+            });
+
+            $("#collapseAll").click(function(e) {
+                e.preventDefault();
+                $("#mysidebar").navgoco('toggle', false);
+            });
+
+            $("#expandAll").click(function(e) {
+                e.preventDefault();
+                $("#mysidebar").navgoco('toggle', true);
+            });
+
+        });
+
+    </script>
+    <script>
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+    </script>
+    <script>
+        $(document).ready(function() {
+            $("#tg-sb-link").click(function() {
+                $("#tg-sb-sidebar").toggle();
+                $("#tg-sb-content").toggleClass('col-md-9');
+                $("#tg-sb-content").toggleClass('col-md-12');
+                $("#tg-sb-icon").toggleClass('fa-toggle-on');
+                $("#tg-sb-icon").toggleClass('fa-toggle-off');
+            });
+        });
+    </script>
+    
+
+</head>
+<body>
+<!-- Navigation -->
+<nav class="navbar navbar-inverse navbar-static-top">
+    <div class="container topnavlinks">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="fa fa-home fa-lg navbar-brand" href="index.html">&nbsp;<span class="projectTitle"> Building Energy Geeks</span></a>
+        </div>
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                <!-- toggle sidebar button -->
+                <li><a id="tg-sb-link" href="#"><i id="tg-sb-icon" class="fa fa-toggle-on"></i> Nav</a></li>
+                <!-- entries without drop-downs appear here -->
+
+
+
+
+                
+                
+                
+                <li><a href="index_data.html">Home</a></li>
+                
+                
+                
+                <li><a href="http://discourse.buildingenergygeeks.org/" target="_blank" rel="noopener">Forum</a></li>
+                
+                
+                
+                <!-- entries with drop-downs appear here -->
+                <!-- conditional logic to control which topnav appears for the audience defined in the configuration file.-->
+                
+                
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Categories<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        
+                        
+                        <li><a href="index_data.html">Data analysis</a></li>
+                        
+                        
+                        
+                        <li><a href="index_hhtb.html">Handbook of heat transfer in buildings</a></li>
+                        
+                        
+                        
+                        <li><a href="index_ebe.html">EBE clim (fr)</a></li>
+                        
+                        
+                    </ul>
+                </li>
+                
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Links<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        
+                        
+                        <li><a href="http://simonrouchier.org/" target="_blank" rel="noopener">Author's page</a></li>
+                        
+                        
+                        
+                        <li><a href="https://github.com/srouchier/buildingenergygeeks" target="_blank" rel="noopener">GitHub</a></li>
+                        
+                        
+                        
+                        <li><a href="https://locie.github.io/bayreb/" target="_blank" rel="noopener">BAYREB project</a></li>
+                        
+                        
+                    </ul>
+                </li>
+                
+                
+                
+                <!--comment out this block if you want to hide search-->
+                <li>
+                    <!--start search-->
+                    <div id="search-demo-container">
+                        <input type="text" id="search-input" placeholder="search...">
+                        <ul id="results-container"></ul>
+                    </div>
+                    <script src="js/jekyll-search.js" type="text/javascript"></script>
+                    <script type="text/javascript">
+                            SimpleJekyllSearch.init({
+                                searchInput: document.getElementById('search-input'),
+                                resultsContainer: document.getElementById('results-container'),
+                                dataSource: 'search.json',
+                                searchResultTemplate: '<li><a href="{url}" title="Implementing a Kalman filter">{title}</a></li>',
+                    noResultsText: 'No results found.',
+                            limit: 10,
+                            fuzzy: true,
+                    })
+                    </script>
+                    <!--end search-->
+                </li>
+            </ul>
+        </div>
+        </div>
+        <!-- /.container -->
+</nav>
+
+<!-- Page Content -->
+<div class="container">
+  <div id="main">
+    <!-- Content Row -->
+    <div class="row">
+        
+        
+            <!-- Sidebar Column -->
+            <div class="col-md-3" id="tg-sb-sidebar">
+                
+
+<ul id="mysidebar" class="nav">
+  <li class="sidebarTitle">Contents </li>
+  
+  
+  
+      
+  
+  <li>
+      <a title="Energy performance assessment" href="#">Energy performance assessment</a>
+      <ul>
+          
+          
+          
+          <li><a title="Energy signature" href="epa_es.html">Energy signature</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="Linear regression" href="epa_lr.html">Linear regression</a></li>
+          
+          
+          
+          
+      </ul>
+   </li>
+     
+      
+  
+  <li>
+      <a title="State-space models" href="#">State-space models</a>
+      <ul>
+          
+          
+          
+          <li><a title="Overview" href="ssm_overview.html">Overview</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="The most simple RC model" href="ssm_rc.html">The most simple RC model</a></li>
+          
+          
+          
+          
+          
+          
+          <li class="active"><a title="The Kalman filter" href="ssm_kalman.html">The Kalman filter</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="The pySIP library" href="ssm_pysip.html">The pySIP library</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="Latent force models" href="ssm_lfm.html">Latent force models</a></li>
+          
+          
+          
+          
+      </ul>
+   </li>
+     
+      
+  
+  <li>
+      <a title="Material characterisation" href="#">Material characterisation</a>
+      <ul>
+          
+          
+          
+          <li><a title="Inverse heat conduction problem" href="mat_ihcp.html">Inverse heat conduction problem</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="Hygric characterisation" href="mat_hygric.html">Hygric characterisation</a></li>
+          
+          
+          
+          
+      </ul>
+   </li>
+     
+      
+      
+      <!-- if you aren't using the accordion, uncomment this block:
+         <p class="external">
+             <a href="#" id="collapseAll">Collapse All</a> | <a href="#" id="expandAll">Expand All</a>
+         </p>
+         -->
+</ul>
+
+<!-- this highlights the active parent class in the navgoco sidebar. this is critical so that the parent expands when you're viewing a page. This must appear below the sidebar code above. Otherwise, if placed inside customscripts.js, the script runs before the sidebar code runs and the class never gets inserted.-->
+<script>$("li.active").parents('li').toggleClass("active");</script>
+
+            </div>
+            
+        
+
+        <!-- Content Column -->
+        <div class="col-md-9" id="tg-sb-content">
+            <div class="post-header">
+   <h1 class="post-title-main">Implementing a Kalman filter</h1>
+</div>
+
+
+
+<script>
+    $(document).ready ( function(){
+        $('.box2').addClass('active');
+    });
+</script>
+
+
+<div id="userMap">
+<div class="content"><a href="ssm_rc.html"><div class="box box1">The most simple RC model</div></a></div>
+<div class="arrow">→</div>
+<div class="content"><a href="ssm_kalman.html"><div class="box box2">Implementing a Kalman filter</div></a></div>
+<div class="arrow">→</div>
+<div class="content"><a href="ssm_pysip.html"><div class="box box3">Using the pySIP library</div></a></div>
+<div class="arrow">→</div>
+<div class="content"><a href="ssm_lfm.html"><div class="box box4">Unobserved influences with Latent Force Models</div></a></div>
+<div class="clearfix"></div>
+
+</div>
+
+
+
+
+<div class="post-content">
+
+   
+    <div class="summary">If a model does not fully describe the thermal behaviour of the building, and this discrepancy is not somehow explicitely accounted for, then the parameter estimates and predictions will be biased and unreliable. This page introduces stochastic state-space models and the linear Kalman filter, as a first way to account for modelling uncertainties.</div>
+   
+
+    
+    
+<!-- this handles the automatic toc. use ## for subheads to auto-generate the on-page minitoc. if you use html tags, you must supply an ID for the heading element in order for it to appear in the minitoc. -->
+<script>
+$( document ).ready(function() {
+  // Handler for .ready() called.
+
+$('#toc').toc({ minimumHeaders: 0, listType: 'ul', showSpeed: 0, headers: 'h2,h3,h4' });
+
+/* this offset helps account for the space taken up by the floating toolbar. */
+$('#toc').on('click', 'a', function() {
+  var target = $(this.getAttribute('href'))
+    , scroll_target = target.offset().top
+
+  $(window).scrollTop(scroll_target - 10);
+  return false
+})
+  
+});
+</script>
+
+<div id="toc"></div>
+
+    
+
+
+    
+
+    <a target="_blank" rel="noopener" href="https://github.com/srouchier/buildingenergygeeks/blob/gh-pages/pages/data/ssm_kalman.md" class="btn btn-default githubEditButton" role="button"><i class="fa fa-github fa-lg"></i> Edit me</a>
+
+    
+
+   <p>The first tutorial of this series showed how an RC model could represent the thermal behaviour of a small test box, and be used to identify its properties: thermal resistance and capacity.</p>
+
+<p>In more realistic applications, the phenomena that impact the energy balance of a building are far more complex than what such a simple model may predict. We extend the RC model structure in order to include effects of solar irradiance, ventilation, several time constants of inertia… But there is a limit to how complex a model can be made, before parameter identification becomes infeasible.</p>
+
+<p>If a model does not fully describe the thermal behaviour of the building, and this discrepancy is not somehow explicitely accounted for, then the parameter estimates and predictions will be biased and unreliable. Stochastic state-space models are a way to account for modelling uncertainties and are now standard practice in the field of building energy performance assessment.</p>
+
+<p>This page shows a simple implementation of a state-space model and a Kalman filter, which can be used for parameter estimation and prediction. The reader can see this paper, among many others, for more information on the theory:</p>
+
+<p><a href="https://hal.archives-ouvertes.fr/hal-01739625"><em>Rouchier, S., Rabouille, M., &amp; Oberlé, P. (2018). Calibration of simplified building energy models for parameter estimation and forecasting: Stochastic versus deterministic modelling. Building and Environment, 134, 181-190.</em></a></p>
+
+<h2 id="some-theory-of-state-space-models-and-the-kalman-filter">Some theory of state-space models and the Kalman filter</h2>
+
+<h3 id="an-example-of-state-space-model">An example of state-space model</h3>
+
+<p>Consider the example of a simple building represented by a 2-resistor, 2-capacitor model structure (2R2C)</p>
+
+<p><img src="images/data/ssm02_2r2c.png" style="width: 500px;" /></p>
+
+<p>The equations of this model are:</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+  C_i \, \mathrm{d} T_i & = \dfrac{1}{R_i}\left(T_e-T_i\right)\mathrm{d}t + \Phi \, \mathrm{d}t + A_i I_s \mathrm{d}t + \sigma_i \,\mathrm{d}\omega_i\label{eq:statespace1} \\
+  C_e \, \mathrm{d} T_e & = \dfrac{1}{R_i}\left(T_i-T_e\right)\mathrm{d}t + \frac{1}{R_e}\left(T_a-T_e\right)\mathrm{d}t + A_e I_s \mathrm{d}t + \sigma_e \, \mathrm{d}\omega_e \label{eq:statespace2}
+\end{align} %]]></script>
+
+<p>where <script type="math/tex">T_i</script>, <script type="math/tex">T_e</script> and <script type="math/tex">T_a</script> are the indoor, envelope and ambient (outdoor) temperatures. The envelope temperature is associated with the thermal mass of the opaque surfaces, and does not represent a specific coordinate within the envelope. The model has two states <script type="math/tex">T_e</script> (unobserved) and <script type="math/tex">T_i</script> (observed); <script type="math/tex">\Phi_h</script> (W) is the indoor heating power; <script type="math/tex">I_s</script> (W/m<script type="math/tex">^2</script>) is the global horizontal solar irradiance. <script type="math/tex">R_i</script> (K/W) is the thermal resistance between the indoor air temperature and the envelope, <script type="math/tex">R_e</script> the resistance between the envelope and the ambient air. <script type="math/tex">C_i</script> and <script type="math/tex">C_e</script> (J/K) are the heat capacities of the interior and the envelope, respectively, and <script type="math/tex">A_i</script> and <script type="math/tex">A_e</script> (m<script type="math/tex">^2</script>) are their solar gain coefficients. <script type="math/tex">\{\omega_i\}</script> and <script type="math/tex">\{\omega_e\}</script> are standard Wiener processes. <script type="math/tex">\sigma_i^2</script> are <script type="math/tex">\sigma_e^2</script> are their variances. This process noise is a way to account for modelling approximations, unrecognized inputs or noise-corrupted input measurements.</p>
+
+<p>Despite its simplicity, this model structure is able to reproduce the thermal behaviour of a simple unoccupied building. The equations can be written in matrix form:</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\mathrm{d} \begin{bmatrix} T_i \\ T_e \end{bmatrix} = \begin{pmatrix} -\frac{1}{R_i \, C_i} & \frac{1}{R_i \, C_i} \\ \frac{1}{R_i \, C_e} & -\frac{1}{R_i \, C_e}-\frac{1}{R_e \, C_e}\end{pmatrix} \begin{bmatrix} T_i \\ T_e \end{bmatrix}\, \mathrm{d}t + \begin{pmatrix} 0 & \frac{1}{C_i} & \frac{k_1}{C_i} \\ \frac{1}{R_e \, C_e} & 0 & \frac{k_2}{C_e} \end{pmatrix} \begin{bmatrix} T_a \\ \Phi_h \\ I_s \end{bmatrix} \, \mathrm{d}t + \mathbf{\sigma} \, \mathrm{d}\omega %]]></script>
+
+<p>which is the state equation in the following stochastic state-space model, written in continuous-discrete form:</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+\mathrm{d}\mathbf{x}(t) & = \mathbf{A}_\theta \, \mathbf{x}(t) \, \mathrm{d}t + \mathbf{B}_\theta \, \mathbf{u}(t)\,\mathrm{d}t + \mathbf{\sigma}_\theta \mathrm{d}\omega \label{eq:statespace4} \\
+\mathbf{y}_t & = \mathbf{C}_\theta \, \mathbf{x}_t + \varepsilon_t \label{eq:statespace5}
+\end{align} %]]></script>
+
+<p>A state-space model is a set of two equations: the first one, the state equation, results from the physical formulation of the system. Its matrices <script type="math/tex">\mathbf{A}_\theta</script>, <script type="math/tex">\mathbf{B}_\theta</script> and <script type="math/tex">\mathbf{\sigma}_\theta</script> are given the <script type="math/tex">\theta</script> subscript to indicate that they depend on a parameter <script type="math/tex">\theta</script>, which is the set of unknown values to be estimated: resistances, capacities, solar gain factors and variances of the Wiener processes. The state vector <script type="math/tex">\mathbf{x}</script> includes the temperatures <script type="math/tex">T_i</script> and <script type="math/tex">T_e</script> calculated by the model, and <script type="math/tex">\mathbf{u}=\left[T_a, \Phi_h, I_s\right]</script> is the input vector including boundary conditions and excitations. The second equation is the observation equation. It indicates that the measured quantity <script type="math/tex">y_t</script> may be different from the output of the state equation. In our case, the observed temperature is only the first component of the state vector, and is encumbered with some measurement error <script type="math/tex">\varepsilon_t</script>. In this equation, time is noted as a subscript to indicate that observations come in a discrete sequence.</p>
+
+<h3 id="discretisation">Discretisation</h3>
+
+<p>The stochastic model must be discretized in order to specify its evolution between discrete time coordinates. Let us denote the sample interval length <script type="math/tex">\Delta t</script> and assume that the inputs <script type="math/tex">\mathbf{u}(t)</script> are constant during each interval. The two above equations can be discretized into the following discrete linear system of equations:</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+		\mathbf{x}_t & = \mathbf{F}_\theta \, \mathbf{x}_{t-1} + \mathbf{G}_\theta \, \mathbf{u}_t + \mathbf{w}_t \label{eq:linear_discrete_1} \\
+		\mathbf{y}_t & = \mathbf{C}_\theta \, \mathbf{x}_t + \mathbf{v}_t \label{eq:linear_discrete_2}
+\end{align} %]]></script>
+
+<p>where <script type="math/tex">\mathbf{x}_t</script> denotes the vector of states at the time coordinate <script type="math/tex">t</script>, and <script type="math/tex">\mathbf{y}_t</script> denotes the observations. The <script type="math/tex">\mathbf{F}_\theta</script> and <script type="math/tex">\mathbf{G}_\theta</script> matrices of the discrete equation result from the matrices of the continuous equation using the usual state-space discretization method. Their coefficients are functions of <script type="math/tex">\theta</script> and of the time step size <script type="math/tex">\Delta t</script>. Similarly, the process noise in discrete time <script type="math/tex">\mathbf{w}_t \sim \mathcal{N}\left(0, \mathbf{Q}_d\right)</script> has a covariance matrix <script type="math/tex">\mathbf{Q}_d</script> that can be calculated from the covariance matrix of the process noise in continuous time <script type="math/tex">\mathbf{\sigma}</script>. The observation error <script type="math/tex">\mathbf{v}_t</script> has a covariance <script type="math/tex">\mathbf{R}</script>, which depends on the variance of <script type="math/tex">\varepsilon_t</script> and the time step size.</p>
+
+<p>The discretization equations are given here, and are available with more detail in the literature:
+<script type="math/tex">% <![CDATA[
+\begin{align}
+  \mathbf{F}_\theta & = \mathrm{exp}\left( \mathbf{A}_\theta \, \Delta t  \right) \label{eq:discretization1}\\
+  \mathbf{G}_\theta & = \mathbf{A}_\theta^{-1} \, \left(\mathbf{F}_\theta-\mathbf{I}\right) \, \mathbf{B}_\theta \label{eq:discretization2}\\
+  \mathbf{Q} & = \int_0^{\Delta t} \mathrm{exp}\left( \mathbf{A}_\theta \, \Delta t  \right) \, \mathbf{\sigma} \, \mathrm{exp}\left( \mathbf{A}_\theta^T \, \Delta t  \right) \mathrm{d}t \label{eq:discretization4}\\
+  \mathbf{R} & = \frac{1}{\Delta t} \mathrm{var}(\varepsilon_t) \label{eq:discretization5}
+\end{align} %]]></script></p>
+
+<h3 id="the-kalman-filter-equations">The Kalman filter equations</h3>
+
+<p>Given a state transition probability <script type="math/tex">p\left( \mathbf{x}_{t} \| \theta, \mathbf{x}_{t-1}, \mathbf{u}_{t} \right)</script> (the state equation) and an observation probability <script type="math/tex">p\left( \mathbf{y}_{t} \| \mathbf{x}_{t}\right)</script> (the observation equation), a Kalman filter produces <script type="math/tex">p\left(\mathbf{x}_t\|\mathbf{y}_{1:T}, \theta \right)</script>, the probability distribution function of each state <script type="math/tex">\mathbf{x}_t</script> given measurements and parameter values, and the marginal likelihood function <script type="math/tex">L_y(\theta)=p\left(\mathbf{y}_{1:T} \| \theta \right)</script>. Its algorithm has been described by many authors and is shortly recalled here.</p>
+
+<p>Filtering produces <script type="math/tex">p\left(\mathbf{x}_t\|\mathbf{y}_{1:N}, \theta \right)</script>, the probability distribution function of each state <script type="math/tex">\mathbf{x}_t</script> given measurements and parameter values. In the following, <script type="math/tex">\mathbf{x}_{t\|s}</script> is the expected state at time <script type="math/tex">t</script> given observations up to time <script type="math/tex">s</script>. <script type="math/tex">\mathbf{P}_{t\|s}</script> is the variance of the state <script type="math/tex">\mathbf{x}_{t}</script>, i.e. the mean-squared error.</p>
+
+<script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+  \mathbf{x}_{t|s} & = \mathrm{E}\left(\mathbf{x}_t|\mathbf{y}_{1:s}, \theta \right) \\
+  \mathbf{P}_{t|s} & = \mathrm{Var}\left(\mathbf{x}_t|\mathbf{y}_{1:s, \theta}\right)= \mathrm{E}\left[(\mathbf{x}_t-\mathbf{x}_{t|s})(\mathbf{x}_t-\mathbf{x}_{t|s})^T|\mathbf{y}_{1:s}, \theta \right]
+\end{align} %]]></script>
+
+<p>The Kalman filter algorithm is described here and illustrated by this sketch:</p>
+
+<p><img src="images/data/ssm02_kalman.png" style="width: 400px;" /></p>
+
+<ul>
+  <li>Set the initial states <script type="math/tex">\mathbf{x}_{0\|0}</script> and their covariance <script type="math/tex">\mathbf{P}_{0\|0}</script></li>
+  <li>for <script type="math/tex">t=1...T</script>:
+    <ul>
+      <li><strong>Prediction step</strong>: given the previous state <script type="math/tex">\mathbf{x}_{t\|t}</script> and its covariance <script type="math/tex">\mathbf{P}_{t\|t}</script>, the model estimates the one-step ahead prediction.</li>
+    </ul>
+
+    <script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+    \mathbf{x}_{t+1|t} & = \mathbf{F}_\theta \, \mathbf{x}_{t|t} + \mathbf{G}_\theta \, \mathbf{u}_{t+1} \label{eq:prediction1} \\
+    \mathbf{P}_{t+1|t} & = \mathbf{F}_\theta \, \mathbf{x}_{t|t} \, \mathbf{F}_\theta^T + \mathbf{Q} \label{eq:prediction2}
+  \end{align} %]]></script>
+
+    <ul>
+      <li><strong>Innovations</strong> (prediction error) <script type="math/tex">\varepsilon_{t+1}</script> and their covariances <script type="math/tex">\Sigma_{t+1}</script> are then calculated, along with the Kalman gain <script type="math/tex">\mathbf{K}_{t+1}</script>, by comparing <strong>measurements</strong> <script type="math/tex">\mathbf{y}_{t+1}</script>  with the one-step ahead prediction <script type="math/tex">\mathbf{x}_{t+1\|t}</script>:</li>
+    </ul>
+
+    <script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+  \varepsilon_{t+1} & = \mathbf{y}_{t+1} - \mathbf{H}_\theta \, \mathbf{x}_{t+1|t}\\
+  \Sigma_{t+1} & = \mathbf{H}_\theta \, \mathbf{P}_{t+1|t} \, \mathbf{H}_\theta^T + \mathbf{R} \\
+  \mathbf{K}_{t+1} & = \mathbf{P}_{t+1|t} \, \mathbf{H}_\theta^T \, \Sigma_{t+1}^{-1}
+  \end{align} %]]></script>
+
+    <ul>
+      <li><strong>Updating step</strong>: the new states at time <script type="math/tex">t+1</script> are updated, as a compromise between the one-step ahead prediction and the measurement.</li>
+    </ul>
+
+    <script type="math/tex; mode=display">% <![CDATA[
+\begin{align}
+  \mathbf{x}_{t+1|t+1} & = \mathbf{x}_{t+1|t} + \mathbf{K}_{t+1} \, \mathbf{\varepsilon}_{t+1} \label{eq:update1} \\
+  \mathbf{P}_{t+1|t+1} & = \left( \mathbf{I}- \mathbf{K}_{t+1} \, \mathbf{H}_\theta \right) \, \mathbf{P}_{t+1|t} \label{eq:update2}
+  \end{align} %]]></script>
+  </li>
+  <li>
+    <p>The total (negative) log-likelihood can be calculated up to a normalizing constant:</p>
+
+    <script type="math/tex; mode=display">\begin{equation}
+  -\ln L_y(\theta) = \frac{1}{2} \sum_{t=1}^{T} \ln \left|\Sigma_t(\theta)\right| + \frac{1}{2} \sum_{t=1}^{T} \varepsilon_t(\theta)^T \, \Sigma_t(\theta)^{-1} \, \varepsilon_t(\theta)
+  \label{eq:likelihood}
+\end{equation}</script>
+  </li>
+</ul>
+
+<p>Roughly speaking, the Kalman filter applies Bayes’ rule at each time step: the updated state <script type="math/tex">p(\mathbf{x}_t\|\mathbf{y}_{1:t})=\mathcal{N}(\mathbf{x}_{t\|t}, \mathbf{P}_{t\|t})</script> is a posterior distribution, obtained from a compromise between a prior output of the model <script type="math/tex">p(\mathbf{x}_t\|\mathbf{y}_{1:t-1})=\mathcal{N}(\mathbf{x}_{t\|t-1}, \mathbf{P}_{t\|t-1})</script> and the evidence brought by measurements <script type="math/tex">\mathbf{y}_t</script>. Their relative weight is expressed by the Kalman gain <script type="math/tex">\mathbf{K}_t</script> that measures the relative confidence we put in both the model and the measurements.</p>
+
+<p>This standard Kalman filter algorithm works for linear systems only. Non-linear systems require another filter, such as the Extended Kalman Filter, the Unscented Kalman Filter, or the particle filter.</p>
+
+<h2 id="a-python-implementation">A Python implementation</h2>
+
+<p>Below is an implementation in Python of all the equations shown above. A class <code class="language-plaintext highlighter-rouge">RC</code> is defined, that will include the equations of discretisation and Kalman filter, and let us define any RC model we need by only specifying its matrices.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">from</span> <span class="nn">scipy.linalg</span> <span class="kn">import</span> <span class="n">expm</span>
+<span class="kn">from</span> <span class="nn">numpy.linalg</span> <span class="kn">import</span> <span class="n">inv</span>
+
+<span class="k">class</span> <span class="nc">RC</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="s">"""This is the generic class for any RC model structure"""</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">pass</span>
+
+    <span class="k">def</span> <span class="nf">discretize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+        <span class="s">""" This method applies the discretisation equations shown above"""</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">N_states</span>
+        <span class="c1"># Discretisation
+</span>        <span class="n">F</span> <span class="o">=</span> <span class="n">expm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ac</span> <span class="o">*</span> <span class="n">dt</span><span class="p">)</span>
+        <span class="n">G</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">inv</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ac</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">F</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">n</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">Bc</span><span class="p">))</span>
+        <span class="n">H</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Cc</span>
+        <span class="c1"># System error covariance matrix (continuous Qc and discrete Q)
+</span>        <span class="n">foo</span> <span class="o">=</span> <span class="n">expm</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">block</span><span class="p">([[</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">Ac</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Qc</span><span class="p">],</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Ac</span><span class="p">)),</span> <span class="bp">self</span><span class="o">.</span><span class="n">Ac</span><span class="o">.</span><span class="n">T</span><span class="p">]])</span> <span class="o">*</span> <span class="n">dt</span><span class="p">)</span>
+        <span class="n">Q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">foo</span><span class="p">[</span><span class="n">n</span><span class="p">:</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">foo</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span><span class="mi">2</span> <span class="o">*</span> <span class="n">n</span><span class="p">])</span>
+        <span class="c1"># Measurement error covariance matrix (discrete)
+</span>        <span class="n">R</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Rc</span> <span class="o">/</span> <span class="n">dt</span>
+
+        <span class="k">return</span> <span class="n">F</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">R</span>
+
+
+    <span class="k">def</span> <span class="nf">prediction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x_0</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="s">""" This method predicts the indoor temperature.
+
+        If update=True, the function will apply all steps of the Kalman filter
+        and return the mean state, covariances of innovations and the likelihood
+
+        If update=False, the function will only predict states and their variance,
+        as if no measurements were available.
+        """</span>
+
+        <span class="n">N_time</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+
+        <span class="c1"># Initialisation of all arrays that will be used in the calculations
+</span>        <span class="c1">#  Mean and variance of the states calculated at the prediction step
+</span>        <span class="n">x_avg_predict</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N_time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">N_states</span><span class="p">))</span>
+        <span class="n">x_var_predict</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N_time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">N_states</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">N_states</span><span class="p">))</span>
+        <span class="n">x_avg_predict</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_0</span>
+        <span class="n">x_var_predict</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">N_states</span><span class="p">)</span>
+
+        <span class="n">x_avg_update</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N_time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">N_states</span><span class="p">))</span>
+        <span class="n">x_var_update</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">N_time</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">N_states</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">N_states</span><span class="p">))</span>
+        <span class="n">x_avg_update</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_0</span>
+        <span class="n">x_var_update</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">N_states</span><span class="p">)</span>
+
+        <span class="n">epsilon</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N_time</span><span class="p">)</span>  <span class="c1"># prediction errors (innovations)
+</span>        <span class="n">Sigma</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N_time</span><span class="p">)</span>  <span class="c1"># innovation covariances
+</span>        <span class="n">loglike</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">N_time</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">N_time</span><span class="p">):</span>
+
+            <span class="c1">#  Matrices of the current time step (depend on the time step size dt)
+</span>            <span class="n">dt</span> <span class="o">=</span> <span class="n">t</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">t</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">F</span><span class="p">,</span> <span class="n">G</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">Q</span><span class="p">,</span> <span class="n">R</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">discretize</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+
+            <span class="c1"># KALMAN 1: Prediction step
+</span>            <span class="n">x_avg_predict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">x_avg_update</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">G</span><span class="p">,</span> <span class="n">u</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+            <span class="n">x_var_predict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">F</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x_var_update</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">F</span><span class="o">.</span><span class="n">T</span><span class="p">))</span> <span class="o">+</span> <span class="n">Q</span>
+
+            <span class="k">if</span> <span class="n">update</span><span class="p">:</span>
+                <span class="c1"># KALMAN 2: Residuals and Kalman gain
+</span>                <span class="n">epsilon</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">x_avg_predict</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                <span class="n">foo</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x_var_predict</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">H</span><span class="o">.</span><span class="n">T</span><span class="p">))</span> <span class="o">+</span> <span class="n">R</span>
+                <span class="n">Sigma</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">foo</span>
+                <span class="n">K</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x_var_predict</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">H</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">inv</span><span class="p">(</span><span class="n">foo</span><span class="p">)))</span>
+                <span class="n">loglike</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">epsilon</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">/</span> <span class="n">Sigma</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">Sigma</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span>
+                <span class="c1"># KALMAN 3: Update and weight
+</span>                <span class="n">x_avg_update</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_avg_predict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">x_avg_predict</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+                <span class="n">x_var_update</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_var_predict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">K</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">x_var_predict</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">x_avg_update</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_avg_predict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="n">x_var_update</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">x_var_predict</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+        <span class="c1"># Returns
+</span>        <span class="k">if</span> <span class="n">update</span><span class="p">:</span>
+            <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">x_avg_predict</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="n">S</span> <span class="o">=</span> <span class="n">Sigma</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">X</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">loglike</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">X_avg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">x_avg_predict</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="n">X_var</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">H</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">x_var_predict</span><span class="p">,</span> <span class="n">H</span><span class="o">.</span><span class="n">T</span><span class="p">))</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">X_avg</span><span class="p">,</span> <span class="n">X_var</span>
+</code></pre></div></div>
+
+<p>The 2R2C model shown at the beginning of this tutorial is an instance of the RC class. The following block can be modified, in order to try the exercise with another model structure.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">class</span> <span class="nc">tite</span><span class="p">(</span><span class="n">RC</span><span class="p">):</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">Ri</span><span class="p">,</span> <span class="n">Re</span><span class="p">,</span> <span class="n">Ci</span><span class="p">,</span> <span class="n">Ce</span><span class="p">,</span> <span class="n">Ai</span><span class="p">,</span> <span class="n">Ae</span><span class="p">,</span> <span class="n">qi</span><span class="p">,</span> <span class="n">qe</span><span class="p">,</span> <span class="n">r</span><span class="p">):</span>
+        <span class="s">""" Model inputs: ambient temperature, heating, solar irradiance"""</span>
+
+        <span class="c1"># Model parameters
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">Ri</span> <span class="o">=</span> <span class="n">Ri</span> <span class="c1"># The first resistance (K/W) of the model, on the indoor side
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">Re</span> <span class="o">=</span> <span class="n">Re</span> <span class="c1"># The second resistance (K/W) of the model, on the outdoor side
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">Ci</span> <span class="o">=</span> <span class="n">Ci</span> <span class="c1"># Heat capacity (J/K) connected to the indoor temperature
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">Ce</span> <span class="o">=</span> <span class="n">Ce</span> <span class="c1"># Heat capacity (J/K) connected to the envelope temperature
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">Ai</span> <span class="o">=</span> <span class="n">Ai</span> <span class="c1"># Solar aperture coefficient directed to the indoor temperature
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">Ae</span> <span class="o">=</span> <span class="n">Ae</span> <span class="c1"># Solar aperture coefficient directed to the envelope temperature
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">qi</span> <span class="o">=</span> <span class="n">qi</span> <span class="c1"># Standard deviation of the modelling error on Ti
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">qe</span> <span class="o">=</span> <span class="n">qe</span> <span class="c1"># Standard deviation of the modelling error on Ti
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">r</span> <span class="o">=</span> <span class="n">r</span>   <span class="c1"># Standard deviation of the measurement error
+</span>
+        <span class="c1"># Number of states
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">N_states</span> <span class="o">=</span> <span class="mi">2</span>
+
+        <span class="c1"># Matrices of the continuous system
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">Ac</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">Ci</span><span class="o">*</span><span class="n">Ri</span><span class="p">),</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">Ci</span><span class="o">*</span><span class="n">Ri</span><span class="p">)],</span>
+                            <span class="p">[</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">Ce</span><span class="o">*</span><span class="n">Ri</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">Ce</span><span class="o">*</span><span class="n">Ri</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">Ce</span><span class="o">*</span><span class="n">Re</span><span class="p">)]])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Bc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">Ci</span><span class="p">,</span> <span class="n">Ai</span> <span class="o">/</span> <span class="n">Ci</span><span class="p">],</span>
+                            <span class="p">[</span><span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">Ce</span><span class="o">*</span><span class="n">Re</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">Ae</span><span class="o">/</span><span class="n">Ce</span><span class="p">]])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Cc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+        <span class="c1"># System and measurement error covariance matrices
+</span>        <span class="bp">self</span><span class="o">.</span><span class="n">Qc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">([</span><span class="n">qi</span><span class="o">**</span><span class="mi">2</span><span class="p">,</span> <span class="n">qe</span><span class="o">**</span><span class="mi">2</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Rc</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="n">r</span> <span class="o">**</span> <span class="mi">2</span><span class="p">]])</span>
+</code></pre></div></div>
+
+<h2 id="case-study">Case study</h2>
+
+<h3 id="the-armadillo-house">The Armadillo house</h3>
+
+<p>The experimental test cell used in this study is called the Armadillo Box. It is a demonstration building of 42 m<script type="math/tex">^2</script> floor area, designed for the 2010 European Solar Decathlon by the ENSAG-GAIA-INES team. The envelope is a light wood framed construction with integrated insulation. Heating and cooling is performed by a “3 in 1” heat pump, and photovoltaic solar panels provide recharge for electric vehicles. A large glazing area on the southern facade ensures solar heat gain in winter, while shadings have been sized to reduce summer overheating. The building considered in this study, shown here,  is a copy of the original Armadillo Box, built on the INES test facilities to investigate its performance on the long term. A technical room on the northern side hosts monitoring equipment.</p>
+
+<p><img src="images/data/ssm02_armadillo.jpg" style="width: 400px;" /></p>
+
+<p>The building is monitored by a variety of sensors, but the present study only uses records of indoor temperature and prescribed heating power, in addition to weather data. The indoor temperature profiles used here have been averaged over several sensors distributed in the living space. An experimental sequence of four days each was used in this study.</p>
+
+<h3 id="the-data">The data</h3>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="n">pd</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">'data/ArmadilloData.csv'</span><span class="p">)</span>
+
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div></div>
+
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Time</th>
+      <th>T_ext</th>
+      <th>P_hea</th>
+      <th>I_sol</th>
+      <th>T_int</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>0.0</td>
+      <td>16.233909</td>
+      <td>0.0</td>
+      <td>13.817618</td>
+      <td>30.281172</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>1800.0</td>
+      <td>15.836256</td>
+      <td>0.0</td>
+      <td>13.828211</td>
+      <td>30.209944</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>3600.0</td>
+      <td>15.484294</td>
+      <td>0.0</td>
+      <td>13.814245</td>
+      <td>30.155675</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>5400.0</td>
+      <td>15.272714</td>
+      <td>0.0</td>
+      <td>13.847024</td>
+      <td>30.086922</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>7200.0</td>
+      <td>14.999161</td>
+      <td>0.0</td>
+      <td>13.841355</td>
+      <td>30.023879</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+
+<span class="n">ax1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">211</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s">'Time'</span><span class="p">]</span><span class="o">/</span><span class="mi">3600</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s">'P_hea'</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s">'Heating power (W)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s">'Time'</span><span class="p">]</span><span class="o">/</span><span class="mi">3600</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s">'I_sol'</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s">'Solar irradiance (W/m2)$'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="c1">#plt.setp(ax1.get_xticklabels(), fontsize=6)
+</span>
+<span class="c1"># temperatures
+</span><span class="n">ax2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">212</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="n">ax1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s">'Time'</span><span class="p">]</span><span class="o">/</span><span class="mi">3600</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s">'T_int'</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s">'Indoor temperature (C)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s">'Time'</span><span class="p">]</span><span class="o">/</span><span class="mi">3600</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s">'T_ext'</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s">'Outdoor temperature (C)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Time (h)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><img src="images/data/ssm02_output1.png" style="width: 600px;" /></p>
+
+<p>The solar irradiance seems to have little impact on the indoor temperature, but we will keep it in the model nevertheless.</p>
+
+<h3 id="first-run-of-the-2r2c-model">First run of the 2R2C model</h3>
+
+<p>Since we will need to initialise the model calibration somewhere, it is useful to try the model with some arbitrary parameter values first.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Arrays containing time coordinates, inputs of the model and observed output
+</span><span class="n">t</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s">'Time'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+<span class="n">u</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s">'T_ext'</span><span class="p">,</span> <span class="s">'P_hea'</span><span class="p">,</span> <span class="s">'I_sol'</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s">'T_int'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+<span class="c1"># Model specification
+</span><span class="n">model</span> <span class="o">=</span> <span class="n">tite</span><span class="p">(</span><span class="n">Ri</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">Re</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">Ci</span><span class="o">=</span><span class="mf">1e6</span><span class="p">,</span> <span class="n">Ce</span><span class="o">=</span><span class="mf">2e7</span><span class="p">,</span> <span class="n">Ai</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">Ae</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">qi</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">qe</span><span class="o">=</span><span class="mf">1e-3</span><span class="p">,</span> <span class="n">r</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">)</span>
+<span class="n">x_0</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">30</span><span class="p">]</span>
+
+<span class="c1"># Model prediction, without Kalman update
+</span><span class="n">x_avg</span><span class="p">,</span> <span class="n">x_var</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">prediction</span><span class="p">(</span><span class="n">x_0</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="c1"># Plotting the measured indoor temperature versus this prediction
+# The prediction comes with 95% confidence intervals
+</span><span class="n">t_</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s">'Time'</span><span class="p">]</span><span class="o">/</span><span class="mi">24</span><span class="o">/</span><span class="mi">3600</span>
+<span class="n">teal</span> <span class="o">=</span> <span class="s">'#029386'</span>
+<span class="n">orange</span> <span class="o">=</span> <span class="s">'#F97306'</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'Measured indoor temperature'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">teal</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_</span><span class="p">,</span> <span class="n">x_avg</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'Predicted indoor temperature'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">orange</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">t_</span><span class="p">,</span> <span class="n">x_avg</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">x_var</span><span class="o">**</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">x_avg</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">x_var</span><span class="o">**</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">orange</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Time (days)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'Temperature (C)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><img src="images/data/ssm02_output2.png" style="width: 400px;" /></p>
+
+<p>The agreement between model predictions and measurements is pretty bad, but at least we have a reasonable initial state for the parameters.</p>
+
+<h2 id="inference">Inference</h2>
+
+<h3 id="model-fitting">Model fitting</h3>
+
+<p>We now need to find the parameters that will offer the best fit between predictions of the 2R2C model and indoor temperature measurements. We will simply use the <code class="language-plaintext highlighter-rouge">curve_fit</code> method from scipy for now.</p>
+
+<p>In order to facilitate convergence, an initial parameter value is first defined. Then, the optimiser will act on an evaluation function that receives normalised versions of each parameter, and scales them with this initial array. Some parameters are log-transformed in order to allow the search over larger scales.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Initial parameter vector {Re, Ri, Ce, Ci, Ae, Ai, log_qe, log_qi, log_r, xe(0)}
+</span><span class="n">theta_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1e-3</span><span class="p">,</span> <span class="mf">1e-2</span><span class="p">,</span> <span class="mf">1e6</span><span class="p">,</span> <span class="mf">2e7</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">30</span><span class="p">])</span>
+<span class="c1"># Some parameters are log-transformed
+</span><span class="n">log_transf</span> <span class="o">=</span> <span class="p">[</span><span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">False</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">True</span><span class="p">,</span> <span class="bp">False</span><span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+    <span class="s">"""
+    arguments are the normalised value of all parameters
+    theta is their physical value"""</span>
+
+    <span class="n">theta</span> <span class="o">=</span> <span class="n">params</span> <span class="o">*</span> <span class="n">theta_init</span>
+    <span class="n">theta</span><span class="p">[</span><span class="n">log_transf</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="n">theta</span><span class="p">[</span><span class="n">log_transf</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">theta</span>
+
+
+<span class="c1"># Definition of an evaluation function that takes "normalized" values or each parameter
+</span><span class="k">def</span> <span class="nf">evaluation</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">nRi</span><span class="p">,</span> <span class="n">nRe</span><span class="p">,</span> <span class="n">nCi</span><span class="p">,</span> <span class="n">nCe</span><span class="p">,</span> <span class="n">nAi</span><span class="p">,</span> <span class="n">nAe</span><span class="p">,</span> <span class="n">nqi</span><span class="p">,</span> <span class="n">nqe</span><span class="p">,</span> <span class="n">nr</span><span class="p">,</span> <span class="n">nxe0</span><span class="p">):</span>
+
+    <span class="n">params</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">((</span><span class="n">nRi</span><span class="p">,</span> <span class="n">nRe</span><span class="p">,</span> <span class="n">nCi</span><span class="p">,</span> <span class="n">nCe</span><span class="p">,</span> <span class="n">nAi</span><span class="p">,</span> <span class="n">nAe</span><span class="p">,</span> <span class="n">nqi</span><span class="p">,</span> <span class="n">nqe</span><span class="p">,</span> <span class="n">nr</span><span class="p">,</span> <span class="n">nxe0</span><span class="p">))</span>
+    <span class="c1"># Reading the dataframe given as argument
+</span>    <span class="n">t</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s">'Time'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s">'T_ext'</span><span class="p">,</span> <span class="s">'P_hea'</span><span class="p">,</span> <span class="s">'I_sol'</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s">'T_int'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+    <span class="c1"># Transforming parameters from normalised to physical values
+</span>    <span class="n">Ri</span><span class="p">,</span> <span class="n">Re</span><span class="p">,</span> <span class="n">Ci</span><span class="p">,</span> <span class="n">Ce</span><span class="p">,</span> <span class="n">Ai</span><span class="p">,</span> <span class="n">Ae</span><span class="p">,</span> <span class="n">qi</span><span class="p">,</span> <span class="n">qe</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">xe_0</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+    <span class="c1"># Model specification and initial condition
+</span>    <span class="n">model</span> <span class="o">=</span> <span class="n">tite</span><span class="p">(</span><span class="n">Ri</span><span class="p">,</span> <span class="n">Re</span><span class="p">,</span> <span class="n">Ci</span><span class="p">,</span> <span class="n">Ce</span><span class="p">,</span> <span class="n">Ai</span><span class="p">,</span> <span class="n">Ae</span><span class="p">,</span> <span class="n">qi</span><span class="p">,</span> <span class="n">qe</span><span class="p">,</span> <span class="n">r</span><span class="p">)</span>
+    <span class="n">x_0</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">xe_0</span><span class="p">]</span>
+
+    <span class="c1"># Model prediction, without Kalman update
+</span>    <span class="n">X</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">L</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">prediction</span><span class="p">(</span><span class="n">x_0</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+    <span class="c1"># We only need the mean states for the curve_fit method
+</span>    <span class="k">return</span> <span class="n">X</span>
+</code></pre></div></div>
+
+<p>We now have everything we need to start the curve fitting algorithm, and save the results into a dataframe.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">curve_fit</span>
+
+<span class="c1"># Curve fitting happens here. popt and pcov are the mean and covariance of parameter estimates
+</span><span class="n">popt</span><span class="p">,</span> <span class="n">pcov</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span><span class="n">evaluation</span><span class="p">,</span>
+                       <span class="n">xdata</span> <span class="o">=</span> <span class="n">df</span><span class="p">,</span>
+                       <span class="n">ydata</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s">'T_int'</span><span class="p">],</span>
+                       <span class="n">p0</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="mi">10</span><span class="o">*</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span>
+                       <span class="n">method</span><span class="o">=</span><span class="s">'lm'</span><span class="p">)</span>
+
+<span class="n">res</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s">'Ri'</span><span class="p">,</span> <span class="s">'Re'</span><span class="p">,</span> <span class="s">'Ci'</span><span class="p">,</span> <span class="s">'Ce'</span><span class="p">,</span> <span class="s">'Ai'</span><span class="p">,</span> <span class="s">'Ae'</span><span class="p">,</span> <span class="s">'qi'</span><span class="p">,</span> <span class="s">'qe'</span><span class="p">,</span> <span class="s">'r'</span><span class="p">,</span> <span class="s">'xe_0'</span><span class="p">])</span>
+<span class="n">res</span><span class="p">[</span><span class="s">'theta_avg'</span><span class="p">]</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">popt</span><span class="p">)</span>
+<span class="n">res</span><span class="p">[</span><span class="s">'theta_std'</span><span class="p">]</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">pcov</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>         theta_avg     theta_std
+Ri    2.856681e-03  1.118381e-04
+Re    1.612989e-02  1.030316e-03
+Ci    3.884967e+06  1.556036e+05
+Ce    1.468206e+07  6.848896e+05
+Ai    1.971117e-01  4.129985e-02
+Ae   -6.800251e-02  1.078595e-01
+qi    3.312597e-08  1.589982e-08
+qe    4.237942e-08  1.187230e-08
+r     1.992575e-04  1.427395e-08
+xe_0  2.988794e+01  5.898068e-01
+</code></pre></div></div>
+
+<p>The estimated parameters seem consistent with the range that we initially assumed. Notice that <code class="language-plaintext highlighter-rouge">Ae</code>, the solar gain coefficient on the envelope capacity, has an average value lower than its standard deviation: this parameter is likely not influential on the outcome.</p>
+
+<h3 id="diagnostics-and-residuals-analysis">Diagnostics and residuals analysis</h3>
+
+<p>In order to evaluate the agreement between the fitted model and the data, let us first simply view the model output in prediction mode (without Kalman update at every time step).</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Model specification
+</span><span class="n">theta</span><span class="o">=</span><span class="n">res</span><span class="p">[</span><span class="s">'theta_avg'</span><span class="p">]</span>
+<span class="n">model_opt</span> <span class="o">=</span> <span class="n">tite</span><span class="p">(</span><span class="n">theta</span><span class="p">[</span><span class="s">'Ri'</span><span class="p">],</span> <span class="n">theta</span><span class="p">[</span><span class="s">'Re'</span><span class="p">],</span> <span class="n">theta</span><span class="p">[</span><span class="s">'Ci'</span><span class="p">],</span> <span class="n">theta</span><span class="p">[</span><span class="s">'Ce'</span><span class="p">],</span>
+                 <span class="n">theta</span><span class="p">[</span><span class="s">'Ai'</span><span class="p">],</span> <span class="n">theta</span><span class="p">[</span><span class="s">'Ae'</span><span class="p">],</span> <span class="n">theta</span><span class="p">[</span><span class="s">'qi'</span><span class="p">],</span> <span class="n">theta</span><span class="p">[</span><span class="s">'qe'</span><span class="p">],</span> <span class="n">theta</span><span class="p">[</span><span class="s">'r'</span><span class="p">])</span>
+<span class="n">x_0_opt</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">theta</span><span class="p">[</span><span class="s">'xe_0'</span><span class="p">]]</span>
+
+<span class="c1"># Prediction without Kalman update, to be compared with the data
+</span><span class="n">x_avg</span><span class="p">,</span> <span class="n">x_var</span> <span class="o">=</span> <span class="n">model_opt</span><span class="o">.</span><span class="n">prediction</span><span class="p">(</span><span class="n">x_0_opt</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="s">'-k'</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'Measured'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">teal</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_</span><span class="p">,</span> <span class="n">x_avg</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.5</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'Fitted model'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">orange</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">t_</span><span class="p">,</span> <span class="n">x_avg</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">x_var</span><span class="o">**</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">x_avg</span><span class="o">+</span><span class="mi">2</span><span class="o">*</span><span class="n">x_var</span><span class="o">**</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">orange</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Time (days)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'Indoor temperature (C)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><img src="images/data/ssm02_output3.png" style="width: 400px;" /></p>
+
+<p>The model fits the data well. The 95% confidence intervals are relatively narrow, indicating a good confidence in the prediction.</p>
+
+<p>Another important criterion on which to judge the fitted model is the autocorrelation function (ACF) of the one-step ahead prediction residuals. In order to view these residuals, the prediction function should be run with the Kalman updating switched on, so that the states it returns are one-step ahead predictions only.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">X</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">L</span> <span class="o">=</span> <span class="n">model_opt</span><span class="o">.</span><span class="n">prediction</span><span class="p">(</span><span class="n">x_0_opt</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">update</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c1"># eps_ are the one-step ahead prediction residuals
+</span><span class="n">eps_</span> <span class="o">=</span> <span class="n">y</span> <span class="o">-</span> <span class="n">X</span>
+<span class="c1"># Let's only take every other value, so that we have time lags of one hour.
+</span><span class="n">eps_</span> <span class="o">=</span> <span class="n">eps_</span><span class="p">[::</span><span class="mi">2</span><span class="p">]</span>
+
+<span class="c1"># Correlation function of two time series. Can be used for the autocorrelation of a single time series
+</span><span class="k">def</span> <span class="nf">crosscorrelation</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">):</span>
+    <span class="s">"""
+    http://stackoverflow.com/q/14297012/190597
+    http://en.wikipedia.org/wiki/Autocorrelation#Estimation
+    """</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">-</span><span class="n">x</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">u</span> <span class="o">=</span> <span class="n">u</span><span class="o">-</span><span class="n">u</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+    <span class="n">r</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">correlate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">mode</span> <span class="o">=</span> <span class="s">'full'</span><span class="p">)[</span><span class="o">-</span><span class="n">n</span><span class="p">:]</span>
+    <span class="k">return</span> <span class="n">r</span><span class="o">/</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="o">*</span><span class="n">u</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="o">*</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)))</span>
+
+<span class="c1"># Autocorrelation of the residuals (only keeping the first 50 lags)
+</span><span class="n">ACF</span> <span class="o">=</span> <span class="n">crosscorrelation</span><span class="p">(</span><span class="n">eps_</span><span class="p">,</span> <span class="n">eps_</span><span class="p">)[</span><span class="mi">0</span><span class="p">:</span><span class="mi">50</span><span class="p">]</span>
+<span class="n">lags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">49</span><span class="p">,</span><span class="mi">50</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">6</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">lags</span><span class="p">,</span> <span class="n">ACF</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">'k'</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">hlines</span><span class="p">([</span><span class="o">-</span><span class="mf">0.1</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="n">linestyles</span><span class="o">=</span><span class="s">'dashed'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Lag (hours)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'Residual autocorrelation'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><img src="images/data/ssm02_output4.png" style="width: 400px;" /></p>
+
+<p>The residuals are low, except from one important peak at 24h lag. This suggests that an important influence occuring with a period of 24 hours has been insufficiently accounted for by the model.</p>
+
+
+    <div class="tags">
+        
+        <b>Tags: </b>
+        
+        
+        
+        
+        
+    </div>
+
+
+
+
+</div>
+
+<hr class="shaded"/>
+
+<footer>
+            <div class="row">
+                <div class="col-lg-12 footer">
+               &copy;2020 USMB. All rights reserved. <br />
+<span>Page last updated:</span> March 29, 2020<br/> Site last generated: Apr 5, 2020 <br />
+<p><img src="images/company_logo.png" alt="Company logo"/></p>
+                </div>
+            </div>
+</footer>
+
+
+        </div>
+    <!-- /.row -->
+</div>
+<!-- /.container -->
+</div>
+<!-- /#main -->
+    </div>
+
+</body>
+
+</html>

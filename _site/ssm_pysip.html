@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="This page introduces the pySIP library for stochastic state-space inference and prediction.">
+<meta name="keywords" content="assessment,  keyword1, keyword2, keyword3">
+<title>RC model with the pySIP library | Data science for building energy performance</title>
+<link rel="stylesheet" href="css/syntax.css">
+
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<!--<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">-->
+<link rel="stylesheet" href="css/modern-business.css">
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link rel="stylesheet" href="css/customstyles.css">
+<link rel="stylesheet" href="css/boxshadowproperties.css">
+<!-- most color styles are extracted out to here -->
+<link rel="stylesheet" href="css/theme-teal.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="js/jquery.navgoco.min.js"></script>
+
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<!-- Anchor.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.2.0/anchor.min.js"></script>
+<script src="js/toc.js"></script>
+<script src="js/customscripts.js"></script>
+
+<link rel="shortcut icon" href="images/favicon.ico">
+
+<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]-->
+
+<link rel="alternate" type="application/rss+xml" title="buildingenergygeeks" href="http://localhost:4000/feed.xml">
+
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize navgoco with default options
+            $("#mysidebar").navgoco({
+                caretHtml: '',
+                accordion: true,
+                openClass: 'active', // open
+                save: false, // leave false or nav highlighting doesn't work right
+                cookie: {
+                    name: 'navgoco',
+                    expires: false,
+                    path: '/'
+                },
+                slide: {
+                    duration: 400,
+                    easing: 'swing'
+                }
+            });
+
+            $("#collapseAll").click(function(e) {
+                e.preventDefault();
+                $("#mysidebar").navgoco('toggle', false);
+            });
+
+            $("#expandAll").click(function(e) {
+                e.preventDefault();
+                $("#mysidebar").navgoco('toggle', true);
+            });
+
+        });
+
+    </script>
+    <script>
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+    </script>
+    <script>
+        $(document).ready(function() {
+            $("#tg-sb-link").click(function() {
+                $("#tg-sb-sidebar").toggle();
+                $("#tg-sb-content").toggleClass('col-md-9');
+                $("#tg-sb-content").toggleClass('col-md-12');
+                $("#tg-sb-icon").toggleClass('fa-toggle-on');
+                $("#tg-sb-icon").toggleClass('fa-toggle-off');
+            });
+        });
+    </script>
+    
+
+</head>
+<body>
+<!-- Navigation -->
+<nav class="navbar navbar-inverse navbar-static-top">
+    <div class="container topnavlinks">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="fa fa-home fa-lg navbar-brand" href="index.html">&nbsp;<span class="projectTitle"> Building Energy Geeks</span></a>
+        </div>
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                <!-- toggle sidebar button -->
+                <li><a id="tg-sb-link" href="#"><i id="tg-sb-icon" class="fa fa-toggle-on"></i> Nav</a></li>
+                <!-- entries without drop-downs appear here -->
+
+
+
+
+                
+                
+                
+                <li><a href="index_data.html">Home</a></li>
+                
+                
+                
+                <li><a href="http://discourse.buildingenergygeeks.org/" target="_blank" rel="noopener">Forum</a></li>
+                
+                
+                
+                <!-- entries with drop-downs appear here -->
+                <!-- conditional logic to control which topnav appears for the audience defined in the configuration file.-->
+                
+                
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Categories<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        
+                        
+                        <li><a href="index_data.html">Data analysis</a></li>
+                        
+                        
+                        
+                        <li><a href="index_hhtb.html">Handbook of heat transfer in buildings</a></li>
+                        
+                        
+                        
+                        <li><a href="index_ebe.html">EBE clim (fr)</a></li>
+                        
+                        
+                    </ul>
+                </li>
+                
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Links<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        
+                        
+                        <li><a href="http://simonrouchier.org/" target="_blank" rel="noopener">Author's page</a></li>
+                        
+                        
+                        
+                        <li><a href="https://github.com/srouchier/buildingenergygeeks" target="_blank" rel="noopener">GitHub</a></li>
+                        
+                        
+                        
+                        <li><a href="https://locie.github.io/bayreb/" target="_blank" rel="noopener">BAYREB project</a></li>
+                        
+                        
+                    </ul>
+                </li>
+                
+                
+                
+                <!--comment out this block if you want to hide search-->
+                <li>
+                    <!--start search-->
+                    <div id="search-demo-container">
+                        <input type="text" id="search-input" placeholder="search...">
+                        <ul id="results-container"></ul>
+                    </div>
+                    <script src="js/jekyll-search.js" type="text/javascript"></script>
+                    <script type="text/javascript">
+                            SimpleJekyllSearch.init({
+                                searchInput: document.getElementById('search-input'),
+                                resultsContainer: document.getElementById('results-container'),
+                                dataSource: 'search.json',
+                                searchResultTemplate: '<li><a href="{url}" title="RC model with the pySIP library">{title}</a></li>',
+                    noResultsText: 'No results found.',
+                            limit: 10,
+                            fuzzy: true,
+                    })
+                    </script>
+                    <!--end search-->
+                </li>
+            </ul>
+        </div>
+        </div>
+        <!-- /.container -->
+</nav>
+
+<!-- Page Content -->
+<div class="container">
+  <div id="main">
+    <!-- Content Row -->
+    <div class="row">
+        
+        
+            <!-- Sidebar Column -->
+            <div class="col-md-3" id="tg-sb-sidebar">
+                
+
+<ul id="mysidebar" class="nav">
+  <li class="sidebarTitle">Contents </li>
+  
+  
+  
+      
+  
+  <li>
+      <a title="Energy performance assessment" href="#">Energy performance assessment</a>
+      <ul>
+          
+          
+          
+          <li><a title="Energy signature" href="epa_es.html">Energy signature</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="Linear regression" href="epa_lr.html">Linear regression</a></li>
+          
+          
+          
+          
+      </ul>
+   </li>
+     
+      
+  
+  <li>
+      <a title="State-space models" href="#">State-space models</a>
+      <ul>
+          
+          
+          
+          <li><a title="Overview" href="ssm_overview.html">Overview</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="The most simple RC model" href="ssm_rc.html">The most simple RC model</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="The Kalman filter" href="ssm_kalman.html">The Kalman filter</a></li>
+          
+          
+          
+          
+          
+          
+          <li class="active"><a title="The pySIP library" href="ssm_pysip.html">The pySIP library</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="Latent force models" href="ssm_lfm.html">Latent force models</a></li>
+          
+          
+          
+          
+      </ul>
+   </li>
+     
+      
+  
+  <li>
+      <a title="Material characterisation" href="#">Material characterisation</a>
+      <ul>
+          
+          
+          
+          <li><a title="Inverse heat conduction problem" href="mat_ihcp.html">Inverse heat conduction problem</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="Hygric characterisation" href="mat_hygric.html">Hygric characterisation</a></li>
+          
+          
+          
+          
+      </ul>
+   </li>
+     
+      
+      
+      <!-- if you aren't using the accordion, uncomment this block:
+         <p class="external">
+             <a href="#" id="collapseAll">Collapse All</a> | <a href="#" id="expandAll">Expand All</a>
+         </p>
+         -->
+</ul>
+
+<!-- this highlights the active parent class in the navgoco sidebar. this is critical so that the parent expands when you're viewing a page. This must appear below the sidebar code above. Otherwise, if placed inside customscripts.js, the script runs before the sidebar code runs and the class never gets inserted.-->
+<script>$("li.active").parents('li').toggleClass("active");</script>
+
+            </div>
+            
+        
+
+        <!-- Content Column -->
+        <div class="col-md-9" id="tg-sb-content">
+            <div class="post-header">
+   <h1 class="post-title-main">RC model with the pySIP library</h1>
+</div>
+
+
+
+<script>
+    $(document).ready ( function(){
+        $('.box3').addClass('active');
+    });
+</script>
+
+
+<div id="userMap">
+<div class="content"><a href="ssm_rc.html"><div class="box box1">The most simple RC model</div></a></div>
+<div class="arrow">→</div>
+<div class="content"><a href="ssm_kalman.html"><div class="box box2">Implementing a Kalman filter</div></a></div>
+<div class="arrow">→</div>
+<div class="content"><a href="ssm_pysip.html"><div class="box box3">Using the pySIP library</div></a></div>
+<div class="arrow">→</div>
+<div class="content"><a href="ssm_lfm.html"><div class="box box4">Unobserved influences with Latent Force Models</div></a></div>
+<div class="clearfix"></div>
+
+</div>
+
+
+
+
+<div class="post-content">
+
+   
+    <div class="summary">This page introduces the pySIP library for stochastic state-space inference and prediction.</div>
+   
+
+    
+    
+<!-- this handles the automatic toc. use ## for subheads to auto-generate the on-page minitoc. if you use html tags, you must supply an ID for the heading element in order for it to appear in the minitoc. -->
+<script>
+$( document ).ready(function() {
+  // Handler for .ready() called.
+
+$('#toc').toc({ minimumHeaders: 0, listType: 'ul', showSpeed: 0, headers: 'h2,h3,h4' });
+
+/* this offset helps account for the space taken up by the floating toolbar. */
+$('#toc').on('click', 'a', function() {
+  var target = $(this.getAttribute('href'))
+    , scroll_target = target.offset().top
+
+  $(window).scrollTop(scroll_target - 10);
+  return false
+})
+  
+});
+</script>
+
+<div id="toc"></div>
+
+    
+
+
+    
+
+    <a target="_blank" rel="noopener" href="https://github.com/srouchier/buildingenergygeeks/blob/gh-pages/pages/data/ssm_pysip.md" class="btn btn-default githubEditButton" role="button"><i class="fa fa-github fa-lg"></i> Edit me</a>
+
+    
+
+   <p>The <a href="/ssm_kalman.html">previous page</a> of this series showed the theory behind linear stochastic state-space models. The theory was then applied by calibrating a simple 2R2C model on the heat dynamics of an unoccupied test house.</p>
+
+<p>The purpose of this page was to give a transparent overview of the mechanics of state-space models and the Kalman filter. In practical applications however, we will wish to ensure that we obtained a robust predictive model, suitable for building energy performance assessment and prediction of energy use. Additional tools are required to assist in model selection, diagnostics of convergence, validation of calibrated models, and eventually Bayesian inference. This is why <a href="https://github.com/locie/pySIP">the pySIP python library for stochastic state-space inference and prediction</a> was developed.</p>
+
+<p>pySIP provides a framework for infering continuous time linear stochastic state-space models. For that purpose, it is possible to chose between a frequentist and a Bayesian workflow. Each workflow allows to estimate the parameters, assess the inference and model reliability, and perform model selection.</p>
+
+<p>The library is being developed by:</p>
+<ul>
+  <li><a href="https://github.com/LoicRaillon">Loïc Raillon</a> - <a href="https://www.locie.univ-smb.fr/en/home/">Univ. Savoie Mont Blanc, CNRS, LOCIE, 73000 Chambéry, France</a></li>
+  <li><a href="https://github.com/mjanv">Maxime Janvier</a> - <a href="https://www.lancey.fr/en/">Lancey Energy Storage</a></li>
+</ul>
+
+<p>This page is an example of how pySIP can be used, with the same data and model structure as the previous page on state-space models. The following code is provided as an example in the pySIP repository.</p>
+
+<h2 id="data-the-armadillo-house">Data: the Armadillo house</h2>
+
+<p>We are considering the same experimental building, and the same measurement period, as in the previous page.</p>
+
+<p><img src="images/data/ssm02_armadillo.jpg" style="width: 400px;" /></p>
+
+<p>The building is monitored by a variety of sensors, but the present study only uses records of indoor temperature and prescribed heating power, in addition to weather data. The indoor temperature profiles used here have been averaged over several sensors distributed in the living space. An experimental sequence of four days each was used in this study.</p>
+
+<p>Some imports first, then we load the data.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="n">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">import</span> <span class="nn">seaborn</span> <span class="k">as</span> <span class="n">sns</span>
+<span class="kn">from</span> <span class="nn">pysip.statespace</span> <span class="kn">import</span> <span class="n">TwTi_RoRi</span>
+<span class="kn">from</span> <span class="nn">pysip.regressors</span> <span class="kn">import</span> <span class="n">FreqRegressor</span> <span class="k">as</span> <span class="n">Regressor</span>
+
+<span class="c1"># Reading the data
+</span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">'data/ArmadilloData.csv'</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s">'Time'</span><span class="p">)</span>
+<span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c1"># pySIP's fit() method takes a dataframe df as argument
+# It also needs to be passed the labels of inputs and outputs in this dataframe
+</span><span class="n">inputs</span> <span class="o">=</span> <span class="p">[</span><span class="s">'T_ext'</span><span class="p">,</span> <span class="s">'P_hea'</span><span class="p">]</span>
+<span class="n">outputs</span> <span class="o">=</span> <span class="s">'T_int'</span>
+
+<span class="c1"># The time can be scaled on daily units instead of seconds.
+# This brings heat capacities to a range closer to other variables
+</span><span class="n">sT</span> <span class="o">=</span> <span class="mf">3600.0</span> <span class="o">*</span> <span class="mf">24.0</span>
+<span class="n">df</span><span class="o">.</span><span class="n">index</span> <span class="o">/=</span> <span class="n">sT</span>
+</code></pre></div></div>
+
+<h2 id="frequentist-regression">Frequentist regression</h2>
+
+<p>We imported the <code class="language-plaintext highlighter-rouge">TwTi_RoRi</code> model, which is similar to the 2R2C model of the previous page, except that solar aperture coefficients are removed. This is fine since their estimated values were very low.</p>
+
+<p>Parameters are specified as a list of dictionaries. Each parameter has a value in the constrained space <script type="math/tex">\theta</script> and in the unconstrained space <script type="math/tex">\eta</script>. These two values are linked by the relation</p>
+
+<script type="math/tex; mode=display">\theta = \mathrm{loc} + f(\eta) . \mathrm{scale}</script>
+
+<p>where <code class="language-plaintext highlighter-rouge">loc</code> and <code class="language-plaintext highlighter-rouge">scale</code> are keywords of a parameter’s dictionary, indicating location and scaling values. A parameter may be transformed by a function <script type="math/tex">f</script>, in order to search on a log scale for instance. More options on parameter specification are given <a href="https://locie.github.io/pySIP/core/parameter.html">in the documentation</a></p>
+
+<p>pySIP works with either a frequentist and a Bayesian regressor. The frequentist regressor, used in this example, applies maximum likelihood estimation by the BFGS algorithm.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Specification of parameters
+</span><span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">'Ro'</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="s">'log'</span><span class="p">),</span>
+    <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">'Ri'</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="s">'log'</span><span class="p">),</span>
+    <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">'Cw'</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1e7</span> <span class="o">/</span> <span class="n">sT</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="s">'log'</span><span class="p">),</span>
+    <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">'Ci'</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1e6</span> <span class="o">/</span> <span class="n">sT</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="s">'log'</span><span class="p">),</span>
+    <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">'sigw_w'</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.01</span> <span class="o">*</span> <span class="n">sT</span> <span class="o">**</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="s">'log'</span><span class="p">),</span>
+    <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">'sigw_i'</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.01</span> <span class="o">*</span> <span class="n">sT</span> <span class="o">**</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="s">'log'</span><span class="p">),</span>
+    <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">'sigv'</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">0.01</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="s">'log'</span><span class="p">),</span>
+    <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">'x0_w'</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">25.0</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="s">'log'</span><span class="p">),</span>
+    <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">'x0_i'</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">26.7</span><span class="p">),</span>
+    <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">'sigx0_w'</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="s">'fixed'</span><span class="p">),</span>
+    <span class="nb">dict</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s">'sigx0_i'</span><span class="p">,</span> <span class="n">value</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">transform</span><span class="o">=</span><span class="s">'fixed'</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="c1"># Definition of the regressor, and model fitting
+</span><span class="n">reg</span> <span class="o">=</span> <span class="n">Regressor</span><span class="p">(</span><span class="n">TwTi_RoRi</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="n">hold_order</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">reg</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">outputs</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="s">'SUMMARY:'</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'--------'</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">out</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Optimization terminated successfully.
+         Current function value: -179.300653
+         Iterations: 43
+         Function evaluations: 53
+         Gradient evaluations: 53
+SUMMARY:
+--------
+               θ      σ(θ)    pvalue    |g(η)|  |dpen(θ)|
+Ro     1.937e-02 1.459e-03 0.000e+00 3.125e-05  2.664e-15
+Ri     2.276e-03 9.802e-05 0.000e+00 3.569e-05  1.930e-15
+Cw     1.671e+02 1.004e+01 0.000e+00 2.702e-05  4.798e-17
+Ci     3.026e+01 1.409e+00 0.000e+00 1.721e-05  1.463e-17
+sigw_w 5.120e-01 6.462e-02 2.909e-13 8.486e-06  3.296e-15
+sigw_i 3.119e-04 3.995e-02 9.938e-01 1.056e-05  8.879e-09
+sigv   6.697e-02 3.994e-03 0.000e+00 2.690e-05  2.229e-18
+x0_w   3.010e+01 1.054e+00 0.000e+00 4.369e-05  6.896e-17
+x0_i   3.027e+01 9.349e-01 0.000e+00 1.228e-06  0.000e+00
+</code></pre></div></div>
+
+<p>Note that the parameter names are different than on the previous notebook, but the estimation results are similar. The calculation is much faster than what we did with scipy’s <code class="language-plaintext highlighter-rouge">curve_fit</code> method, and also more reliable because of the choice of algorithm.</p>
+
+<p>Finally, we can compare the fitted model output with the data.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">dt</span> <span class="o">=</span> <span class="mi">60</span> <span class="o">/</span> <span class="mi">3600</span>
+<span class="n">tnew</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">dt</span><span class="p">)</span>
+<span class="n">ym</span><span class="p">,</span> <span class="n">ysd</span> <span class="o">=</span> <span class="n">reg</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">,</span> <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">tnew</span><span class="o">=</span><span class="n">tnew</span><span class="p">)</span>
+
+<span class="n">sns</span><span class="o">.</span><span class="n">set_style</span><span class="p">(</span><span class="s">'whitegrid'</span><span class="p">)</span>
+<span class="n">sns</span><span class="o">.</span><span class="n">set_context</span><span class="p">(</span><span class="s">'notebook'</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s">'T_int'</span><span class="p">],</span> <span class="s">'k'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">tnew</span><span class="p">,</span> <span class="n">ym</span><span class="p">,</span> <span class="s">'navy'</span><span class="p">,</span> <span class="n">lw</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span><span class="p">(</span><span class="n">tnew</span><span class="p">,</span> <span class="n">ym</span> <span class="o">-</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">ysd</span><span class="p">,</span> <span class="n">ym</span> <span class="o">+</span> <span class="mf">1.96</span> <span class="o">*</span> <span class="n">ysd</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s">'darkblue'</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">)</span>
+<span class="n">sns</span><span class="o">.</span><span class="n">despine</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'time [days]'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'temperature [°C]'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><img src="images/data/ssm03_output.png" style="width: 400px;" /></p>
+
+
+    <div class="tags">
+        
+        <b>Tags: </b>
+        
+        
+        
+        
+        
+    </div>
+
+
+
+
+</div>
+
+<hr class="shaded"/>
+
+<footer>
+            <div class="row">
+                <div class="col-lg-12 footer">
+               &copy;2020 USMB. All rights reserved. <br />
+<span>Page last updated:</span> March 29, 2020<br/> Site last generated: Apr 5, 2020 <br />
+<p><img src="images/company_logo.png" alt="Company logo"/></p>
+                </div>
+            </div>
+</footer>
+
+
+        </div>
+    <!-- /.row -->
+</div>
+<!-- /.container -->
+</div>
+<!-- /#main -->
+    </div>
+
+</body>
+
+</html>

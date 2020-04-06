@@ -1,0 +1,28 @@
+## Topnav single links
+## if you want to list an external url, use external_url instead of url. the theme will apply a different link base.
+topnav:
+- title: Topnav
+  items:
+    - title: Forum
+      external_url: http://discourse.buildingenergygeeks.org/
+
+#Topnav dropdowns
+topnav_dropdowns:
+- title: Topnav dropdowns
+  folders:
+    - title: Categories
+      folderitems:
+        - title: Data analysis
+          url: /index_data.html
+        - title: Handbook of heat transfer in buildings
+          url: /index_hhtb.html
+        - title: EBE clim (fr)
+          url: /index_ebe.html
+    - title: Links
+      folderitems:
+        - title: Author's page
+          external_url: http://simonrouchier.org/
+        - title: GitHub
+          external_url: https://github.com/srouchier/buildingenergygeeks
+        - title: BAYREB project
+          external_url: https://locie.github.io/bayreb/

@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="This page introduces the workflow of model calibration applied to building energy performance assessment, with a very simple example.">
+<meta name="keywords" content="assessment,  keyword1, keyword2, keyword3">
+<title>The most simple RC model | Data science for building energy performance</title>
+<link rel="stylesheet" href="css/syntax.css">
+
+<link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+<!--<link rel="stylesheet" type="text/css" href="css/bootstrap.min.css">-->
+<link rel="stylesheet" href="css/modern-business.css">
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+<link rel="stylesheet" href="css/customstyles.css">
+<link rel="stylesheet" href="css/boxshadowproperties.css">
+<!-- most color styles are extracted out to here -->
+<link rel="stylesheet" href="css/theme-teal.css">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="js/jquery.navgoco.min.js"></script>
+
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<!-- Anchor.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.2.0/anchor.min.js"></script>
+<script src="js/toc.js"></script>
+<script src="js/customscripts.js"></script>
+
+<link rel="shortcut icon" href="images/favicon.ico">
+
+<!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+<!--[if lt IE 9]>
+<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+<![endif]-->
+
+<link rel="alternate" type="application/rss+xml" title="buildingenergygeeks" href="http://localhost:4000/feed.xml">
+
+<script type="text/javascript" async
+  src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-MML-AM_CHTML">
+</script>
+
+    <script>
+        $(document).ready(function() {
+            // Initialize navgoco with default options
+            $("#mysidebar").navgoco({
+                caretHtml: '',
+                accordion: true,
+                openClass: 'active', // open
+                save: false, // leave false or nav highlighting doesn't work right
+                cookie: {
+                    name: 'navgoco',
+                    expires: false,
+                    path: '/'
+                },
+                slide: {
+                    duration: 400,
+                    easing: 'swing'
+                }
+            });
+
+            $("#collapseAll").click(function(e) {
+                e.preventDefault();
+                $("#mysidebar").navgoco('toggle', false);
+            });
+
+            $("#expandAll").click(function(e) {
+                e.preventDefault();
+                $("#mysidebar").navgoco('toggle', true);
+            });
+
+        });
+
+    </script>
+    <script>
+        $(function () {
+            $('[data-toggle="tooltip"]').tooltip()
+        })
+    </script>
+    <script>
+        $(document).ready(function() {
+            $("#tg-sb-link").click(function() {
+                $("#tg-sb-sidebar").toggle();
+                $("#tg-sb-content").toggleClass('col-md-9');
+                $("#tg-sb-content").toggleClass('col-md-12');
+                $("#tg-sb-icon").toggleClass('fa-toggle-on');
+                $("#tg-sb-icon").toggleClass('fa-toggle-off');
+            });
+        });
+    </script>
+    
+
+</head>
+<body>
+<!-- Navigation -->
+<nav class="navbar navbar-inverse navbar-static-top">
+    <div class="container topnavlinks">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="fa fa-home fa-lg navbar-brand" href="index.html">&nbsp;<span class="projectTitle"> Building Energy Geeks</span></a>
+        </div>
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav navbar-right">
+                <!-- toggle sidebar button -->
+                <li><a id="tg-sb-link" href="#"><i id="tg-sb-icon" class="fa fa-toggle-on"></i> Nav</a></li>
+                <!-- entries without drop-downs appear here -->
+
+
+
+
+                
+                
+                
+                <li><a href="index_data.html">Home</a></li>
+                
+                
+                
+                <li><a href="http://discourse.buildingenergygeeks.org/" target="_blank" rel="noopener">Forum</a></li>
+                
+                
+                
+                <!-- entries with drop-downs appear here -->
+                <!-- conditional logic to control which topnav appears for the audience defined in the configuration file.-->
+                
+                
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Categories<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        
+                        
+                        <li><a href="index_data.html">Data analysis</a></li>
+                        
+                        
+                        
+                        <li><a href="index_hhtb.html">Handbook of heat transfer in buildings</a></li>
+                        
+                        
+                        
+                        <li><a href="index_ebe.html">EBE clim (fr)</a></li>
+                        
+                        
+                    </ul>
+                </li>
+                
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">Links<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        
+                        
+                        <li><a href="http://simonrouchier.org/" target="_blank" rel="noopener">Author's page</a></li>
+                        
+                        
+                        
+                        <li><a href="https://github.com/srouchier/buildingenergygeeks" target="_blank" rel="noopener">GitHub</a></li>
+                        
+                        
+                        
+                        <li><a href="https://locie.github.io/bayreb/" target="_blank" rel="noopener">BAYREB project</a></li>
+                        
+                        
+                    </ul>
+                </li>
+                
+                
+                
+                <!--comment out this block if you want to hide search-->
+                <li>
+                    <!--start search-->
+                    <div id="search-demo-container">
+                        <input type="text" id="search-input" placeholder="search...">
+                        <ul id="results-container"></ul>
+                    </div>
+                    <script src="js/jekyll-search.js" type="text/javascript"></script>
+                    <script type="text/javascript">
+                            SimpleJekyllSearch.init({
+                                searchInput: document.getElementById('search-input'),
+                                resultsContainer: document.getElementById('results-container'),
+                                dataSource: 'search.json',
+                                searchResultTemplate: '<li><a href="{url}" title="The most simple RC model">{title}</a></li>',
+                    noResultsText: 'No results found.',
+                            limit: 10,
+                            fuzzy: true,
+                    })
+                    </script>
+                    <!--end search-->
+                </li>
+            </ul>
+        </div>
+        </div>
+        <!-- /.container -->
+</nav>
+
+<!-- Page Content -->
+<div class="container">
+  <div id="main">
+    <!-- Content Row -->
+    <div class="row">
+        
+        
+            <!-- Sidebar Column -->
+            <div class="col-md-3" id="tg-sb-sidebar">
+                
+
+<ul id="mysidebar" class="nav">
+  <li class="sidebarTitle">Contents </li>
+  
+  
+  
+      
+  
+  <li>
+      <a title="Energy performance assessment" href="#">Energy performance assessment</a>
+      <ul>
+          
+          
+          
+          <li><a title="Energy signature" href="epa_es.html">Energy signature</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="Linear regression" href="epa_lr.html">Linear regression</a></li>
+          
+          
+          
+          
+      </ul>
+   </li>
+     
+      
+  
+  <li>
+      <a title="State-space models" href="#">State-space models</a>
+      <ul>
+          
+          
+          
+          <li><a title="Overview" href="ssm_overview.html">Overview</a></li>
+          
+          
+          
+          
+          
+          
+          <li class="active"><a title="The most simple RC model" href="ssm_rc.html">The most simple RC model</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="The Kalman filter" href="ssm_kalman.html">The Kalman filter</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="The pySIP library" href="ssm_pysip.html">The pySIP library</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="Latent force models" href="ssm_lfm.html">Latent force models</a></li>
+          
+          
+          
+          
+      </ul>
+   </li>
+     
+      
+  
+  <li>
+      <a title="Material characterisation" href="#">Material characterisation</a>
+      <ul>
+          
+          
+          
+          <li><a title="Inverse heat conduction problem" href="mat_ihcp.html">Inverse heat conduction problem</a></li>
+          
+          
+          
+          
+          
+          
+          <li><a title="Hygric characterisation" href="mat_hygric.html">Hygric characterisation</a></li>
+          
+          
+          
+          
+      </ul>
+   </li>
+     
+      
+      
+      <!-- if you aren't using the accordion, uncomment this block:
+         <p class="external">
+             <a href="#" id="collapseAll">Collapse All</a> | <a href="#" id="expandAll">Expand All</a>
+         </p>
+         -->
+</ul>
+
+<!-- this highlights the active parent class in the navgoco sidebar. this is critical so that the parent expands when you're viewing a page. This must appear below the sidebar code above. Otherwise, if placed inside customscripts.js, the script runs before the sidebar code runs and the class never gets inserted.-->
+<script>$("li.active").parents('li').toggleClass("active");</script>
+
+            </div>
+            
+        
+
+        <!-- Content Column -->
+        <div class="col-md-9" id="tg-sb-content">
+            <div class="post-header">
+   <h1 class="post-title-main">The most simple RC model</h1>
+</div>
+
+
+
+<script>
+    $(document).ready ( function(){
+        $('.box1').addClass('active');
+    });
+</script>
+
+
+<div id="userMap">
+<div class="content"><a href="ssm_rc.html"><div class="box box1">The most simple RC model</div></a></div>
+<div class="arrow">→</div>
+<div class="content"><a href="ssm_kalman.html"><div class="box box2">Implementing a Kalman filter</div></a></div>
+<div class="arrow">→</div>
+<div class="content"><a href="ssm_pysip.html"><div class="box box3">Using the pySIP library</div></a></div>
+<div class="arrow">→</div>
+<div class="content"><a href="ssm_lfm.html"><div class="box box4">Unobserved influences with Latent Force Models</div></a></div>
+<div class="clearfix"></div>
+
+</div>
+
+
+
+
+<div class="post-content">
+
+   
+    <div class="summary">This page introduces the workflow of model calibration applied to building energy performance assessment, with a very simple example.</div>
+   
+
+    
+    
+<!-- this handles the automatic toc. use ## for subheads to auto-generate the on-page minitoc. if you use html tags, you must supply an ID for the heading element in order for it to appear in the minitoc. -->
+<script>
+$( document ).ready(function() {
+  // Handler for .ready() called.
+
+$('#toc').toc({ minimumHeaders: 0, listType: 'ul', showSpeed: 0, headers: 'h2,h3,h4' });
+
+/* this offset helps account for the space taken up by the floating toolbar. */
+$('#toc').on('click', 'a', function() {
+  var target = $(this.getAttribute('href'))
+    , scroll_target = target.offset().top
+
+  $(window).scrollTop(scroll_target - 10);
+  return false
+})
+  
+});
+</script>
+
+<div id="toc"></div>
+
+    
+
+
+    
+
+    <a target="_blank" rel="noopener" href="https://github.com/srouchier/buildingenergygeeks/blob/gh-pages/pages/data/ssm_rc.md" class="btn btn-default githubEditButton" role="button"><i class="fa fa-github fa-lg"></i> Edit me</a>
+
+    
+
+   <p>This page is the first step into using RC models and measured data to learn the thermal properties of building envelopes. It is a very basic example, with a very simple “building” and a very simple model, which purpose is to introduce the workflow of model calibration. Essential steps, such as data preprocessing, model selection, inference diagnostics, are not presented here but will be in the next notebooks of this series.</p>
+
+<p>The main steps are:</p>
+<ul>
+  <li>Monitoring a building (here a simple test box) for the variables that will let us learn its performance</li>
+  <li>Selecting a simple model structure that may reproduce these observations</li>
+  <li>Fitting the model output on the data using a learning algorithm</li>
+</ul>
+
+<p>Once the model is calibrated, its parameters should then represent the physical properties of the real building. (Of course there are many conditions to meet before we can assume that this is the case, but they are not presented in this introductory notebook).</p>
+
+<h2 id="the-test-box-and-the-data">The test box and the data</h2>
+
+<p><img src="images/data/ssm01_test_box.png" style="width: 600px;" /></p>
+
+<p>A small box is heated by a 15W lamp, and the indoor temperature is monitored by sensors (EmonTH and Data logger), along with the ambient temperature. By analysing these measurements, we wish to estimate the thermal properties of the box: resistance and capacity. One of the walls of the box is interchangeable: it can be replaced by concrete, wood, insulation, brick… 5 tests have been run with different wall compositions: concrete, brick, wood, insulated concrete and insulated wood.</p>
+
+<p>All 5 tests are available in separate tabs in the excel file: <code class="language-plaintext highlighter-rouge">data/test_box.xlsx</code></p>
+
+<p>During each test, the lamp is turned on and off a few times, and kept on overnight. The figure below shows the indoor temperature and heating power recorded during one of the tests.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Some imports
+</span><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="n">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Loading data from file
+</span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="s">'data/test_box.xlsx'</span><span class="p">,</span> <span class="n">sheet_name</span><span class="o">=</span><span class="s">'Test 1'</span><span class="p">)</span>
+
+<span class="c1"># Showing the dates to pandas and setting them as index
+</span><span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">to_datetime</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s">'DD/MM/AAAA hh:mm'</span><span class="p">]),</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="s">'DD/MM/AAAA hh:mm'</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c1"># There are some missing values. Let's quickly replace them
+</span><span class="n">df</span><span class="o">.</span><span class="n">interpolate</span><span class="p">(</span><span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+<span class="c1"># Creating a new column with the time step between measurements
+</span><span class="n">df</span><span class="p">[</span><span class="s">'dt'</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="mi">0</span><span class="p">],(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">total_seconds</span><span class="p">()</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>
+
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div></div>
+
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>DD/MM/AAAA hh:mm</th>
+      <th>Ti [°C]</th>
+      <th>HRi [%]</th>
+      <th>Ta [°C]</th>
+      <th>HRe [%]</th>
+      <th>P [W]</th>
+      <th>dt</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>2018-06-13 09:00:00</th>
+      <td>29.2</td>
+      <td>42.4</td>
+      <td>23.9</td>
+      <td>61.3</td>
+      <td>14.25</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <th>2018-06-13 09:01:00</th>
+      <td>29.6</td>
+      <td>41.7</td>
+      <td>23.9</td>
+      <td>61.1</td>
+      <td>14.25</td>
+      <td>60.0</td>
+    </tr>
+    <tr>
+      <th>2018-06-13 09:02:00</th>
+      <td>30.0</td>
+      <td>41.1</td>
+      <td>23.9</td>
+      <td>61.3</td>
+      <td>14.25</td>
+      <td>60.0</td>
+    </tr>
+    <tr>
+      <th>2018-06-13 09:03:00</th>
+      <td>30.3</td>
+      <td>40.5</td>
+      <td>23.9</td>
+      <td>61.3</td>
+      <td>14.25</td>
+      <td>60.0</td>
+    </tr>
+    <tr>
+      <th>2018-06-13 09:04:00</th>
+      <td>30.7</td>
+      <td>40.0</td>
+      <td>23.9</td>
+      <td>61.3</td>
+      <td>14.25</td>
+      <td>60.0</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Now that the dataframe containing one of the tests has been loaded, we can have a look.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+
+<span class="n">ax1</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">311</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s">'P [W]'</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s">'Heating power (W)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="c1">#plt.setp(ax1.get_xticklabels(), fontsize=6)
+</span>
+<span class="c1"># share x only
+</span><span class="n">ax2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">312</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="n">ax1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s">'Ti [°C]'</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s">'$T_i (C)$'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s">'Ta [°C]'</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s">'$T_a (C)$'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">setp</span><span class="p">(</span><span class="n">ax2</span><span class="o">.</span><span class="n">get_xticklabels</span><span class="p">(),</span> <span class="n">visible</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+<span class="c1"># share x and y
+</span><span class="n">ax3</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">313</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="n">ax1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s">'HRi [</span><span class="si">%</span><span class="s">]'</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s">'$RH_i (</span><span class="err">\</span><span class="si">%</span><span class="s">)$'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s">'HRe [</span><span class="si">%</span><span class="s">]'</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s">'$RH_e (</span><span class="err">\</span><span class="si">%</span><span class="s">)$'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><img src="images/data/ssm01_data.png" style="width: 600px;" /></p>
+
+<p>We can see that the temperature inside the box <script type="math/tex">T_i</script> is clearly influenced by the heating power being turned on and off. In comparison, the ambient temperature <script type="math/tex">T_a</script> does not vary much. Relative humidities $RH$ show similar trends, because of their dependency on the temperature, but we are not going to use this information here.</p>
+
+<h2 id="the-most-simple-rc-model">The most simple RC model</h2>
+
+<p>We are going to fit a simple RC model on each of the 5 tests, to estimate 5 different values of the thermal resistance <script type="math/tex">R</script> and capacity <script type="math/tex">C</script>. The most simple thermal model with which we can represent the box has one resistance and one capacitance.</p>
+
+<p><img src="images/data/ssm01_1r1c.png" style="width: 200px;" /></p>
+
+<script type="math/tex; mode=display">C \frac{\partial T_i}{\partial t} = \frac{1}{R} (T_a-T_i) + P</script>
+
+<p>The model will let us calculate the value of <script type="math/tex">T_i</script> as a function of the inputs <script type="math/tex">(T_a, P)</script> and the parameters <script type="math/tex">(R,C)</script>. The equation is discretised on a time scale <script type="math/tex">t \in \{1...T\}</script> with the same time step size <script type="math/tex">\Delta t</script> as the data:</p>
+
+<script type="math/tex; mode=display">\left(\frac{C}{\Delta t}+\frac{1}{R}\right) T_i^{t+1} = \frac{C}{\Delta t}T_i^t + \frac{1}{R} T_a^{t+1} + P^{t+1}</script>
+
+<p>The model is defined in the following code:</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Input and output arrays taken from the dataframe
+</span><span class="n">df_inputs</span> <span class="o">=</span> <span class="n">df</span><span class="p">[[</span><span class="s">'Ta [°C]'</span><span class="p">,</span> <span class="s">'P [W]'</span><span class="p">,</span> <span class="s">'dt'</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span>
+<span class="n">df_output</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s">'Ti [°C]'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+
+<span class="c1"># Function that will calculate the indoor temperature for a given value of R and C
+</span><span class="k">def</span> <span class="nf">ti</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">R</span><span class="p">,</span> <span class="n">C</span><span class="p">):</span>
+
+    <span class="n">ta</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">p</span>  <span class="o">=</span> <span class="n">inputs</span><span class="p">[:,</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">dt</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[:,</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df_inputs</span><span class="p">))</span>
+    <span class="c1"># Initial temperature
+</span>    <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">df_output</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)):</span>
+        <span class="n">y</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="p">(</span><span class="n">C</span><span class="o">/</span><span class="n">dt</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="o">/</span><span class="n">R</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">C</span><span class="o">/</span><span class="n">dt</span><span class="p">[</span><span class="n">t</span><span class="p">]</span><span class="o">*</span><span class="n">y</span><span class="p">[</span><span class="n">t</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="o">/</span><span class="n">R</span><span class="o">*</span><span class="n">ta</span><span class="p">[</span><span class="n">t</span><span class="p">]</span> <span class="o">+</span> <span class="n">p</span><span class="p">[</span><span class="n">t</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">y</span>
+</code></pre></div></div>
+
+<h2 id="training">Training</h2>
+
+<p>Calibrating a model means finding the settings or set of parameters with which its output best matches a series of observations, called a training dataset. This data usually originates from measurements (in either experimental test cells or real buildings), but may also have been produced by a complex reference model that we wish to approximate by a simplified one.</p>
+
+<p><img src="images/data/ssm01_training.png" style="width: 700px;" /></p>
+
+<p>We can find the optimal parameters <script type="math/tex">\theta=(R,C)</script> by minimizing the sum of squared residuals between the measured indoor temperature and the output of the function we just defined. This is equivalent to what the <code class="language-plaintext highlighter-rouge">curve_fit</code> method of Scipy does here.</p>
+
+<p>The method requires initial parameter values, which we can find manually beforehand.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">scipy.optimize</span> <span class="k">as</span> <span class="n">so</span>
+
+<span class="c1"># The curve_fit function will find the optimal value for the parameters R and C
+</span><span class="n">p_opt</span><span class="p">,</span> <span class="n">p_cov</span> <span class="o">=</span> <span class="n">so</span><span class="o">.</span><span class="n">curve_fit</span><span class="p">(</span><span class="n">f</span><span class="o">=</span><span class="n">ti</span><span class="p">,</span>
+                            <span class="n">xdata</span><span class="o">=</span><span class="n">df_inputs</span><span class="p">,</span>
+                            <span class="n">ydata</span><span class="o">=</span><span class="n">df_output</span><span class="p">,</span>
+                            <span class="n">p0</span><span class="o">=</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="mi">2000</span><span class="p">))</span>
+<span class="c1"># Optimal value for R and C
+</span><span class="n">R_opt</span> <span class="o">=</span> <span class="n">p_opt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">C_opt</span> <span class="o">=</span> <span class="n">p_opt</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'R: </span><span class="si">%.2</span><span class="s">f K/W'</span> <span class="o">%</span> <span class="n">R_opt</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">'C: </span><span class="si">%.2</span><span class="s">f J/K'</span> <span class="o">%</span> <span class="n">C_opt</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>R: 1.23 K/W
+C: 2278.22 J/K
+</code></pre></div></div>
+
+<p>Finally, we can compare the profile of measured indoor temperature with the output of the model with the identified optimal parameters.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Plot the results to see if the calculated temperature fits well with measurements
+</span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">df_output</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'Measured $T_i$'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">ti</span><span class="p">(</span><span class="n">df_inputs</span><span class="p">,</span> <span class="n">R_opt</span><span class="p">,</span> <span class="n">C_opt</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s">'Model prediction'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Time (s)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'Temperature (C)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><img src="images/data/ssm01_fit.png" style="width: 600px;" /></p>
+
+<p>There seems to be a reasonable agreement between the data and the model output. A closer look at the prediction residuals would however probably reveal that the model structure is insufficient to accurately represent even this small test box, and that the estimated parameters should thus be used with caution.</p>
+
+
+    <div class="tags">
+        
+        <b>Tags: </b>
+        
+        
+        
+        
+        
+    </div>
+
+
+
+
+</div>
+
+<hr class="shaded"/>
+
+<footer>
+            <div class="row">
+                <div class="col-lg-12 footer">
+               &copy;2020 USMB. All rights reserved. <br />
+<span>Page last updated:</span> March 29, 2020<br/> Site last generated: Apr 5, 2020 <br />
+<p><img src="images/company_logo.png" alt="Company logo"/></p>
+                </div>
+            </div>
+</footer>
+
+
+        </div>
+    <!-- /.row -->
+</div>
+<!-- /.container -->
+</div>
+<!-- /#main -->
+    </div>
+
+</body>
+
+</html>

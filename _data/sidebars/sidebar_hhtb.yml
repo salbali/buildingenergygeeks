@@ -1,0 +1,71 @@
+# This is your sidebar TOC. The sidebar code loops through sections here and provides the appropriate formatting.
+
+entries:
+- title: sidebar
+  product: Contents
+  folders:
+
+  - title:
+    output: pdf
+    type: frontmatter
+    folderitems:
+    - title:
+      url: /titlepage.html
+      output: pdf
+      type: frontmatter
+    - title:
+      url: /tocpage.html
+      output: pdf
+      type: frontmatter
+
+  - title: Conduction
+    output: web, pdf
+    folderitems:
+
+    - title: Stationary heat conduction
+      url: /cond_stationary.html
+      output: web, pdf
+
+    - title: Thermal inertia
+      url: /cond_inertia.html
+      output: web, pdf
+
+    - title: Transient 1D conduction
+      url: /cond_transient.html
+      output: web, pdf
+
+    - title: Further topics
+      url: /cond_other.html
+      output: web, pdf
+
+  - title: Radiative heat transfer
+    output: web, pdf
+    folderitems:
+
+    - title: Solar gain
+      url: /rad_solar.html
+      output: web, pdf
+
+    - title: Long wave radiative exchange
+      url: /rad_long.html
+      output: web, pdf
+
+    - title: Thermal comfort
+      url: /rad_comfort.html
+      output: web, pdf
+
+  - title: Convection
+    output: web, pdf
+    folderitems:
+
+    - title: Heat transfer by air flow
+      url: /conv_air.html
+      output: web, pdf
+
+    - title: Estimating natural ventilation
+      url: /conv_nat.html
+      output: web, pdf
+
+    - title: Heat transfer coefficients
+      url: /conv_coeff.html
+      output: web, pdf

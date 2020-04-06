@@ -1,0 +1,96 @@
+# This is your sidebar TOC. The sidebar code loops through sections here and provides the appropriate formatting.
+
+entries:
+- title: sidebar
+  product: Menu
+  version:
+  folders:
+
+  - title: Accueil
+    output: web, pdf
+    folderitems:
+
+    - title: Page d'accueil
+      url: /index_ebe.html
+      output: web, pdf
+      type: homepage
+
+    - title: A propos de ce site
+      url: /about_ebe.html
+      output: web, pdf
+
+  - title: Thermique du bâtiment
+    output: web, pdf
+    folderitems:
+
+    - title: Analogie électrique
+      url: /thermique_analogie.html
+      output: web, pdf
+
+    - title: Inertie thermique
+      url: /thermique_inertie.html
+      output: web, pdf
+
+    - title: Rayonnement
+      url: /thermique_rayonnement.html
+      output: web, pdf
+
+    - title: Ventilation
+      url: /thermique_ventilation.html
+      output: web, pdf
+
+    - title: Mini-projet
+      url: /thermique_projet.html
+      output: web, pdf
+
+  - title: Chauffage et ECS
+    output: web, pdf
+    folderitems:
+
+    - title: Production et distribution
+      url: /cvc_prodistrib.html
+      output: web, pdf
+
+    - title: Equilibrage hydraulique
+      url: /cvc_equilibrage.html
+      output: web, pdf
+
+    - title: Emetteurs de chaleur
+      url: /cvc_emetteurs.html
+      output: web, pdf
+
+    - title: Eau chaude sanitaire
+      url: /cvc_ecs.html
+      output: web, pdf
+
+  - title: Traitement d'air
+    output: web, pdf
+    folderitems:
+
+    - title: Diagramme de l'air humide
+      url: /airhumide_dah.html
+      output: web, pdf
+
+    - title: Mélanges d'air humide
+      url: /airhumide_melanges.html
+      output: web, pdf
+
+    - title: Transformations et CTA
+      url: /airhumide_transformations.html
+      output: web, pdf
+
+    - title: CTA double flux
+      url: /airhumide_ctadouble.html
+      output: web, pdf
+
+  - title: Régulation
+    output: web, pdf
+    folderitems:
+
+    - title: Régulation 1
+      url: /regulation_1.html
+      output: web, pdf
+
+    - title: Régulation 2
+      url: /regulation_2.html
+      output: web, pdf

@@ -1,0 +1,67 @@
+# This is your sidebar TOC. The sidebar code loops through sections here and provides the appropriate formatting.
+
+entries:
+- title: sidebar
+  product: Contents
+  folders:
+
+  - title:
+    output: pdf
+    type: frontmatter
+    folderitems:
+    - title:
+      url: /titlepage.html
+      output: pdf
+      type: frontmatter
+    - title:
+      url: /tocpage.html
+      output: pdf
+      type: frontmatter
+
+  - title: Energy performance assessment
+    output: web, pdf
+    folderitems:
+
+    - title: Energy signature
+      url: /epa_es.html
+      output: web, pdf
+
+    - title: Linear regression
+      url: /epa_lr.html
+      output: web, pdf
+
+  - title: State-space models
+    output: web, pdf
+    folderitems:
+
+    - title: Overview
+      url: /ssm_overview.html
+      output: web, pdf
+
+    - title: The most simple RC model
+      url: /ssm_rc.html
+      output: web, pdf
+
+    - title: The Kalman filter
+      url: /ssm_kalman.html
+      output: web, pdf
+
+    - title: The pySIP library
+      url: /ssm_pysip.html
+      output: web, pdf
+
+    - title: Latent force models
+      url: /ssm_lfm.html
+      output: web, pdf
+
+  - title: Material characterisation
+    output: web, pdf
+    folderitems:
+
+    - title: Inverse heat conduction problem
+      url: /mat_ihcp.html
+      output: web, pdf
+
+    - title: Hygric characterisation
+      url: /mat_hygric.html
+      output: web, pdf
