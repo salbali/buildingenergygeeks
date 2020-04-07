@@ -77,16 +77,16 @@ $$
 \begin{align}
   \mathbf{F}_\theta & = \mathrm{exp}\left( \mathbf{A}_\theta \, \Delta t  \right) \label{eq:discretization1}\\
   \mathbf{G}_\theta & = \mathbf{A}_\theta^{-1} \, \left(\mathbf{F}_\theta-\mathbf{I}\right) \, \mathbf{B}_\theta \label{eq:discretization2}\\
-  \mathbf{Q} & = \int_0^{\Delta t} \mathrm{exp}\left( \mathbf{A}_\theta \, \Delta t  \right) \, \mathbf{\sigma} \, \mathrm{exp}\left( \mathbf{A}_\theta^T \, \Delta t  \right) \mathrm{d}t \label{eq:discretization4}\\
+  \mathbf{Q} & = \int_0^{\Delta t} \mathrm{exp}\left( \mathbf{A}_\theta \, \Delta t  \right) \, \mathbf{\sigma} . \sigma^T \, \mathrm{exp}\left( \mathbf{A}_\theta^T \, \Delta t  \right) \mathrm{d}t \label{eq:discretization4}\\
   \mathbf{R} & = \frac{1}{\Delta t} \mathrm{var}(\varepsilon_t) \label{eq:discretization5}
 \end{align}
 $$
 
 ### The Kalman filter equations
 
-Given a state transition probability $$p\left( \mathbf{x}_{t} \| \theta, \mathbf{x}_{t-1}, \mathbf{u}_{t} \right)$$ (the state equation) and an observation probability $$p\left( \mathbf{y}_{t} \| \mathbf{x}_{t}\right)$$ (the observation equation), a Kalman filter produces $$p\left(\mathbf{x}_t\|\mathbf{y}_{1:T}, \theta \right)$$, the probability distribution function of each state $$\mathbf{x}_t$$ given measurements and parameter values, and the marginal likelihood function $$L_y(\theta)=p\left(\mathbf{y}_{1:T} \| \theta \right)$$. Its algorithm has been described by many authors and is shortly recalled here.
+Given a state transition probability $$p\left( \mathbf{x}_{t} \| \theta, \mathbf{x}_{t-1}, \mathbf{u}_{t} \right) $$ (the state equation) and an observation probability $$p\left( \mathbf{y}_{t} \| \mathbf{x}_{t}\right)$$ (the observation equation), a Kalman filter produces $$p\left(\mathbf{x}_t\|\mathbf{y}_{1:T}, \theta \right)$$, the probability distribution function of each state $$\mathbf{x}_t$$ given measurements and parameter values, and the marginal likelihood function $$L_y(\theta)=p\left(\mathbf{y}_{1:T} \| \theta \right)$$. Its algorithm has been described by many authors and is shortly recalled here.
 
-Filtering produces $$p\left(\mathbf{x}_t\|\mathbf{y}_{1:N}, \theta \right)$$, the probability distribution function of each state $$\mathbf{x}_t$$ given measurements and parameter values. In the following, $$\mathbf{x}_{t\|s}$$ is the expected state at time $$t$$ given observations up to time $$s$$. $$\mathbf{P}_{t\|s}$$ is the variance of the state $$\mathbf{x}_{t}$$, i.e. the mean-squared error.
+Filtering produces $$p\left(\mathbf{x}_t\|\mathbf{y}_{1:N}, \theta \right)$$, the probability distribution function of each state $$\mathbf{x}_t$$ given measurements and parameter values. In the following, $$\mathbf{x}_{t\|s}$$ is the expected state at time $$t$$ given observations up to time $$s$$. $$\mathbf{P}_{t\|s}$$ is the variance of the state $$\mathbf{x}_{t}$$.
 
 $$
 \begin{align}

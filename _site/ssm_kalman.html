@@ -452,7 +452,7 @@ $('#toc').on('click', 'a', function() {
 \begin{align}
   \mathbf{F}_\theta & = \mathrm{exp}\left( \mathbf{A}_\theta \, \Delta t  \right) \label{eq:discretization1}\\
   \mathbf{G}_\theta & = \mathbf{A}_\theta^{-1} \, \left(\mathbf{F}_\theta-\mathbf{I}\right) \, \mathbf{B}_\theta \label{eq:discretization2}\\
-  \mathbf{Q} & = \int_0^{\Delta t} \mathrm{exp}\left( \mathbf{A}_\theta \, \Delta t  \right) \, \mathbf{\sigma} \, \mathrm{exp}\left( \mathbf{A}_\theta^T \, \Delta t  \right) \mathrm{d}t \label{eq:discretization4}\\
+  \mathbf{Q} & = \int_0^{\Delta t} \mathrm{exp}\left( \mathbf{A}_\theta \, \Delta t  \right) \, \mathbf{\sigma} . \sigma^T \, \mathrm{exp}\left( \mathbf{A}_\theta^T \, \Delta t  \right) \mathrm{d}t \label{eq:discretization4}\\
   \mathbf{R} & = \frac{1}{\Delta t} \mathrm{var}(\varepsilon_t) \label{eq:discretization5}
 \end{align} %]]></script></p>
 
@@ -460,7 +460,7 @@ $('#toc').on('click', 'a', function() {
 
 <p>Given a state transition probability <script type="math/tex">p\left( \mathbf{x}_{t} \| \theta, \mathbf{x}_{t-1}, \mathbf{u}_{t} \right)</script> (the state equation) and an observation probability <script type="math/tex">p\left( \mathbf{y}_{t} \| \mathbf{x}_{t}\right)</script> (the observation equation), a Kalman filter produces <script type="math/tex">p\left(\mathbf{x}_t\|\mathbf{y}_{1:T}, \theta \right)</script>, the probability distribution function of each state <script type="math/tex">\mathbf{x}_t</script> given measurements and parameter values, and the marginal likelihood function <script type="math/tex">L_y(\theta)=p\left(\mathbf{y}_{1:T} \| \theta \right)</script>. Its algorithm has been described by many authors and is shortly recalled here.</p>
 
-<p>Filtering produces <script type="math/tex">p\left(\mathbf{x}_t\|\mathbf{y}_{1:N}, \theta \right)</script>, the probability distribution function of each state <script type="math/tex">\mathbf{x}_t</script> given measurements and parameter values. In the following, <script type="math/tex">\mathbf{x}_{t\|s}</script> is the expected state at time <script type="math/tex">t</script> given observations up to time <script type="math/tex">s</script>. <script type="math/tex">\mathbf{P}_{t\|s}</script> is the variance of the state <script type="math/tex">\mathbf{x}_{t}</script>, i.e. the mean-squared error.</p>
+<p>Filtering produces <script type="math/tex">p\left(\mathbf{x}_t\|\mathbf{y}_{1:N}, \theta \right)</script>, the probability distribution function of each state <script type="math/tex">\mathbf{x}_t</script> given measurements and parameter values. In the following, <script type="math/tex">\mathbf{x}_{t\|s}</script> is the expected state at time <script type="math/tex">t</script> given observations up to time <script type="math/tex">s</script>. <script type="math/tex">\mathbf{P}_{t\|s}</script> is the variance of the state <script type="math/tex">\mathbf{x}_{t}</script>.</p>
 
 <script type="math/tex; mode=display">% <![CDATA[
 \begin{align}
