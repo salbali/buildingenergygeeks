@@ -29,7 +29,7 @@ $$Q = \sum_{i=1}^n Q_i = \sum_{i=1}^n \rho_i . e_i . c_{p,i} (T_i-T_0) $$
 
 <table>
 <tr>
-<th> <img src="images/ebethermique_transitoire.png" style="width: 250px;"> </th>
+<th> <img src="images/ebe/thermique_transitoire.png" style="width: 250px;"> </th>
 <th style="font-weight: normal">
 En régime non transitoire, on peut calculer la variation d'une température dans le temps en fonction des valeurs R et C d'un élément de paroi. Ces valeurs dépendent de l'épaisseur de discrétisation et des propriétés du matériau. Pour l'exemple ci-contre, on résoud l'équation :
 

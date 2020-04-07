@@ -21,7 +21,7 @@ Si la vanne est en **mode mélange**, le débit dans les émetteurs est fixé pa
 
 <table>
 <tr>
-<th> <img src="images/ebe_chauffage_melange.png" style="width: 350px;"> </th>
+<th> <img src="images/ebe/chauffage_melange.png" style="width: 350px;"> </th>
 <th style="font-weight: normal">
 La puissance (W) de l'émetteur est donnée par son débit (kg/s) et la différence de température entrée-sortie :
 $$ P = \dot{m} \, c \, (T_1-T_2) $$
@@ -37,7 +37,7 @@ Si la vanne est en **mode décharge**, la température de l'eau arrivant vers le
 
 <table>
 <tr>
-<th> <img src="images/ebe_chauffage_decharge.png" style="width: 350px;"> </th>
+<th> <img src="images/ebe/chauffage_decharge.png" style="width: 350px;"> </th>
 <th style="font-weight: normal">
 La puissance (W) de l'émetteur est donnée par son débit (kg/s) et la différence de température entrée-sortie :
 $$ P = \dot{m} \, c \, (T_0-T_2) $$
@@ -46,7 +46,3 @@ $$ \dot{m} = \dot{m}_0 - \dot{m}_{BP}$$
 </th>
 </tr>
 </table>
-
-## Exercices
-
-J'ajouterai peut-être un exercice ici.

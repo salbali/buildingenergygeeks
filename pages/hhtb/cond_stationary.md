@@ -1,5 +1,5 @@
 ---
-title: This is the title
+title: Stationary heat conduction in the building envelope
 tags: [tag1, tag2, tag3]
 keywords: keyword1, keyword2, keyword3
 last_updated: March 28, 2020
@@ -11,10 +11,4 @@ permalink: cond_stationary.html
 ---
 
 
-## Second level section heading
-
-### Third level section heading
-
-Placeholder page
-
-{% include links.html %}
+Placeholder text

@@ -13,9 +13,7 @@ Bienvenue sur la page d'accueil du site EBE clim.
 
 Ce site est un complément de révision pour les étudiants de la formation Environnement Bâtiment Energie (EBE) de l'école [Polytech Annecy-Chambéry](http://www.polytech.univ-smb.fr/), sur les modules liés à l'efficacité énergétique des bâtiments. Le contenu du site peut aussi servir à n'importe qui, comme introduction ou pour compléter des connaissances sur les thèmes de la thermique des bâtiments, le fonctionnement et la régulation des systèmes de chauffage, ventilation et refroidissement.
 
-Le site est composé des quatre modules ci-dessous, qui contiennent chacun plusieurs leçons. Chaque leçon peut contenir une ou plusieurs vidéos, un formulaire, des exercices, etc.
-
-**Dernière mise à jour le 28 février 2019** : je suis en train de remplir la section [Chauffage et ECS](/cvc_intro.html). La section régulation sera enfin complétée au printemps.
+Le site est composé des trois modules ci-dessous, qui contiennent chacun plusieurs leçons. Chaque leçon peut contenir une ou plusieurs vidéos, un formulaire, des exercices, etc.
 
 <div class="row">
 
@@ -64,21 +62,7 @@ Le site est composé des quatre modules ci-dessous, qui contiennent chacun plusi
                  </div>
              </div>
          </div>
-         <div class="col-md-3 col-sm-6">
-             <div class="panel panel-default text-center">
-                 <div class="panel-heading">
-                     <span class="fa-stack fa-5x">
-                           <i class="fa fa-circle fa-stack-2x" style="color:teal"></i>
-                           <i class="fa fa-play fa-stack-1x fa-inverse"></i>
-                     </span>
-                 </div>
-                 <div class="panel-body">
-                     <h4>Régulation</h4>
-                     <p>Comment suivre automatiquement une consigne</p>
-                     <a href="regulation_intro.html" class="btn btn-primary">Sommaire</a>
-                 </div>
-             </div>
-         </div>
+
 </div>
 
 Pour en savoir plus sur ce site et son auteur, vous pouvez aller sur [cette page](/apropos.html).

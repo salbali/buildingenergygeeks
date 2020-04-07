@@ -82,15 +82,3 @@ entries:
     - title: CTA double flux
       url: /airhumide_ctadouble.html
       output: web, pdf
-
-  - title: Régulation
-    output: web, pdf
-    folderitems:
-
-    - title: Régulation 1
-      url: /regulation_1.html
-      output: web, pdf
-
-    - title: Régulation 2
-      url: /regulation_2.html
-      output: web, pdf

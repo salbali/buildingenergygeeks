@@ -35,7 +35,7 @@ Pour résoudre un problème d'échange radiatif (grandes longueurs d'onde) entre
 
 <table>
 <tr>
-<th> <img src="images/ebe_view_factor_1.png" style="width: 150px;"> </th>
+<th> <img src="images/ebe/view_factor_1.png" style="width: 150px;"> </th>
 <th style="font-weight: normal">
 Deux surfaces parallèles de mêmes dimensions:
 
@@ -49,7 +49,7 @@ $$ \mathrm{avec} \: x_1=\sqrt{1+x^2} \: ; \: y_1=\sqrt{1+y^2} \: ; \: x=W/H \: ;
 
 <table>
 <tr>
-<th> <img src="images/ebe_view_factor_2.png" style="width: 150px;"> </th>
+<th> <img src="images/ebe/view_factor_2.png" style="width: 150px;"> </th>
 <th style="font-weight: normal">
 Deux rectangles adjacents perpendiculaires:
 
@@ -93,7 +93,7 @@ Une mise en pratique de cette méthodologie est proposée avec l'exercice ci-des
 
 On considère une pièce parallélépipédique aux dimensions suivantes :
 
-<img src="images/ebe_thermique_rayonnement_exo.png" style="width: 250px;">
+<img src="images/ebe/thermique_rayonnement_exo.png" style="width: 250px;">
 
 * La surface $$S_5$$ (mur vertical gauche) est une baie vitrée à la température $$T_5 = 8°C$$.
 * La surface $$S_0$$ est un radiateur couvrant la moitié de la hauteur du mur de droite, à la température $$T_0 = 60°C$$.

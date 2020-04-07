@@ -34,10 +34,6 @@ entries:
       url: /cond_transient.html
       output: web, pdf
 
-    - title: Further topics
-      url: /cond_other.html
-      output: web, pdf
-
   - title: Radiative heat transfer
     output: web, pdf
     folderitems:

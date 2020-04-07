@@ -29,7 +29,7 @@ La masse volumique de l'air $$\rho$$ [kg/m$$^3$$] peut être approchée par l'é
 
 $$\rho = \frac{353}{T}$$
 
-<img src="images/ebe_thermique_tirage.png" style="width: 600px;">
+<img src="images/ebe/thermique_tirage.png" style="width: 600px;">
 
 L'effet de tirage thermique vient de cette relation entre masse volumique et température. Sur la figure ci-dessus, deux ambiances sont aux températures $$T_e$$ et $$T_i$$. La différence de pression entre elles est une fonction de la hauteur $$z$$ :
 
@@ -50,7 +50,7 @@ $$z_n = \dfrac{P_e(0)-P_i(0)}{g(\rho_i-\rho_e)} $$
 
 <div role="tabpanel" class="tab-pane active" id="enonce" markdown="1">
 
-<img src="images/ebe_thermique_aeraulique.png" style="width: 500px;">
+<img src="images/ebe/thermique_aeraulique.png" style="width: 500px;">
 
 Une porte de hauteur $$H=2$$m et de largeur $$w=1$$m sépare deux pièces aux températures $$T_1=15°C$$ et $$T_2=21°C$$.
 

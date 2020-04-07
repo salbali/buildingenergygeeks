@@ -4,7 +4,7 @@
     <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="This is the summary of the page">
+<meta name="description" content="The hamopy python package for one-dimensional heat, air and moisture transfer in porous media, is used here in a curve fitting problem for the hygric charact...">
 <meta name="keywords" content="material,  keyword1, keyword2, keyword3">
 <title>Hygric characterisation | Data science for building energy performance</title>
 <link rel="stylesheet" href="css/syntax.css">
@@ -335,7 +335,7 @@
 <div class="post-content">
 
    
-    <div class="summary">This is the summary of the page</div>
+    <div class="summary">The hamopy python package for one-dimensional heat, air and moisture transfer in porous media, is used here in a curve fitting problem for the hygric characterisation of a material sample.</div>
    
 
     
@@ -370,12 +370,398 @@ $('#toc').on('click', 'a', function() {
 
     
 
-   <h2 id="second-level-section-heading">Second level section heading</h2>
+   <p>This page shows an application of a curve fitting algorithm for the estimation of moisture transfer properties of a porous material.</p>
 
-<h3 id="third-level-section-heading">Third level section heading</h3>
+<p>The tutorial uses the <a href="http://srouchier.github.io/hamopy/">hamopy</a> Python package for one-dimensional heat, air and moisture transfer in porous media. The inverse problem is then simply solved by thscipy’s <code class="language-plaintext highlighter-rouge">curve_fit</code> method.</p>
 
-<p>Placeholder page</p>
+<h2 id="experimental-setup">Experimental setup</h2>
 
+<p>The target is to estimate the water vapour permeability and sorption isotherm of a material sample from transient measurements of its weight and internal relative humidity.</p>
+
+<p><img src="images/data/mat_hygric_setup.png" style="width: 200px;" /></p>
+
+<p>A cylindrical porous sample is placed on a scale within a chamber of controlled relative humidity. The mass uptake and the weight gain of the sample are continously recorded after a stepwise change in ambient relative humidity. The target of the problem is to use these measurements to find the water vapour permeability and sorption isotherm of this material.</p>
+
+<p>More information on the experimental setup is given in this paper:</p>
+
+<p><a href="http://www.sciencedirect.com/science/article/pii/S0360132316305042">Rouchier S, Busser T, Pailha M, Piot A, Woloszyn M 2017. Hygric characterization of wood fiber insulation under uncertainty with dynamic measurements and Markov Chain Monte-Carlo algorithm, Building and Environment vol. 114, p. 129-139</a></p>
+
+<p>The measurements used as input and output of the model are given in the <code class="language-plaintext highlighter-rouge">hygric_data.txt</code> file.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="n">pd</span>
+
+<span class="c1"># Sample size
+</span><span class="n">h</span> <span class="o">=</span> <span class="mf">0.08</span>    <span class="c1"># height
+</span><span class="n">D</span> <span class="o">=</span> <span class="mf">0.111</span>   <span class="c1"># diameter
+</span>
+<span class="c1"># Measurements
+</span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">'data/hygric_data.txt'</span><span class="p">,</span> <span class="n">delimiter</span> <span class="o">=</span> <span class="s">'</span><span class="se">\t</span><span class="s">'</span><span class="p">)</span>
+
+<span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>
+</code></pre></div></div>
+
+<div>
+<style scoped="">
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Time (s)</th>
+      <th>T ext</th>
+      <th>RH ext</th>
+      <th>T</th>
+      <th>RH1</th>
+      <th>Mass (g)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>0.0</td>
+      <td>291.52</td>
+      <td>0.4000</td>
+      <td>296.62</td>
+      <td>0.0917</td>
+      <td>134.83</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>3600.0</td>
+      <td>291.64</td>
+      <td>0.4123</td>
+      <td>294.11</td>
+      <td>0.0723</td>
+      <td>135.02</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>7200.0</td>
+      <td>292.15</td>
+      <td>0.4053</td>
+      <td>294.11</td>
+      <td>0.0669</td>
+      <td>135.17</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>10800.0</td>
+      <td>292.65</td>
+      <td>0.4167</td>
+      <td>294.61</td>
+      <td>0.0624</td>
+      <td>135.29</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>14400.0</td>
+      <td>293.15</td>
+      <td>0.4133</td>
+      <td>295.11</td>
+      <td>0.0678</td>
+      <td>135.39</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>We thus have measurements of ambient temperature and humidity, weight of the sample and humidity at the bottom of the sample.</p>
+
+<h2 id="first-run-of-hamopy">First run of hamopy</h2>
+
+<p>Before defining an objective function for the optimisation algorithm that will search the optimal material parameters, let us show with one simulation how the hamopy package works.</p>
+
+<p>One simulation of coupled heat, air and humidity transfer with hamopy is called with this line:</p>
+
+<p><code class="language-plaintext highlighter-rouge">result = calcul(mesh, clim, init, time)</code></p>
+
+<p>The method <code class="language-plaintext highlighter-rouge">calcul</code> calls the main algorithm, and needs four objects as arguments:</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">mesh</code> contains all information regarding the material definition and spatial discretisation of the domain</li>
+  <li><code class="language-plaintext highlighter-rouge">clim</code> stores boundary conditions</li>
+  <li><code class="language-plaintext highlighter-rouge">init</code> defines initial conditions</li>
+  <li><code class="language-plaintext highlighter-rouge">time</code> specifies the time of simulation, time step size, etc.</li>
+</ul>
+
+<p>The results are stored in an object that lets users access to profiles of temperature, humidity and moisture content.</p>
+
+<h3 id="mesh-material-definition-and-discretisation">mesh: material definition and discretisation</h3>
+
+<p>The first step into specifying the model inputs is the choice of material. In the following block, we are defining a Material called wood_fibre, and setting its heat and moisture transfer properties. There are several models available for each property, described <a href="http://simonrouchier.org/hamopy/user-guide/materials/">in the user guide</a>.</p>
+
+<p>Then, the material sample itself is defined as one layer of this material, with size $h$ and a certain number of finite elements. This can be refined in case of convergence issue.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">hamopy.classes</span> <span class="kn">import</span> <span class="n">Material</span><span class="p">,</span> <span class="n">Mesh</span>
+
+<span class="c1"># Isolant hygroscopique proche de la fibre de bois
+</span><span class="n">wood_fibre</span> <span class="o">=</span> <span class="n">Material</span><span class="p">(</span><span class="s">'isolant'</span><span class="p">,</span> <span class="n">rho</span> <span class="o">=</span> <span class="mf">200.</span><span class="p">,</span> <span class="n">cp</span> <span class="o">=</span> <span class="mf">2000.</span><span class="p">)</span>
+
+<span class="c1"># Setting heat conductivity and its dependency to moisture content and temperature
+</span><span class="n">wood_fibre</span><span class="o">.</span><span class="n">set_conduc</span><span class="p">(</span><span class="n">lambda_0</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span>
+                      <span class="n">lambda_m</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span>
+                      <span class="n">lambda_t</span> <span class="o">=</span> <span class="mf">0.1e-3</span><span class="p">)</span>
+
+<span class="c1"># Setting the sorpion isotherm
+</span><span class="n">wood_fibre</span><span class="o">.</span><span class="n">set_isotherm</span><span class="p">(</span><span class="s">'slope'</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span><span class="s">"HR"</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">],</span>
+                                    <span class="s">"XI"</span> <span class="p">:</span> <span class="p">[</span><span class="mi">17</span><span class="p">,</span> <span class="mi">19</span><span class="p">,</span> <span class="mi">47</span><span class="p">]</span> <span class="p">})</span>
+
+<span class="c1"># Setting the vapour permeability
+</span><span class="n">wood_fibre</span><span class="o">.</span><span class="n">set_perm_vapor</span><span class="p">(</span><span class="s">'interp'</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span><span class="s">"HR"</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">],</span>
+                                       <span class="s">"dp"</span> <span class="p">:</span> <span class="p">[</span><span class="mf">2e-10</span><span class="p">,</span> <span class="mf">5e-10</span><span class="p">]</span> <span class="p">}</span> <span class="p">)</span>
+
+<span class="c1"># Defining the mesh object as one layer of material, with size h
+</span><span class="n">mesh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="s">"materials"</span>    <span class="p">:</span> <span class="p">[</span><span class="n">wood_fibre</span><span class="p">],</span>
+               <span class="s">"sizes"</span>        <span class="p">:</span> <span class="p">[</span><span class="n">h</span><span class="p">],</span>
+               <span class="s">"nbr_elements"</span> <span class="p">:</span> <span class="p">[</span><span class="mi">23</span><span class="p">]</span> <span class="p">})</span>
+</code></pre></div></div>
+
+<h3 id="clim-boundary-conditions">clim: boundary conditions</h3>
+
+<p>Boundary conditions are specified as a list of two Boundary objects. There are a few options to specify each boundary, whether they have constant or variable conditions. One of these options is to directly pass the measurement file and the name of the labels. Other options are described in the <a href="http://simonrouchier.org/hamopy/user-guide/boundary/">documentation</a>.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">hamopy.classes</span> <span class="kn">import</span> <span class="n">Boundary</span>
+
+<span class="c1"># The first bounday is open, with a fixed transfer coefficient.
+</span><span class="n">clim1</span> <span class="o">=</span> <span class="n">Boundary</span><span class="p">(</span><span class="s">'Fourier'</span><span class="p">,</span><span class="o">**</span><span class="p">{</span><span class="s">"file"</span> <span class="p">:</span> <span class="s">'data/hygric_data.txt'</span><span class="p">,</span>
+                              <span class="s">"time"</span> <span class="p">:</span> <span class="s">"Time (s)"</span><span class="p">,</span>
+                              <span class="s">"T"</span>    <span class="p">:</span> <span class="s">"T ext"</span><span class="p">,</span>
+                              <span class="s">"HR"</span>   <span class="p">:</span> <span class="s">"RH ext"</span><span class="p">,</span>
+                              <span class="s">"h_m"</span>  <span class="p">:</span> <span class="mf">5e-9</span><span class="p">})</span>
+
+<span class="c1"># The second boundary is insulated: transfer coefficients are zero.
+</span><span class="n">clim2</span> <span class="o">=</span> <span class="n">Boundary</span><span class="p">(</span><span class="s">'Fourier'</span><span class="p">,</span><span class="o">**</span><span class="p">{</span><span class="s">"file"</span> <span class="p">:</span> <span class="s">'data/hygric_data.txt'</span><span class="p">,</span>
+                              <span class="s">"time"</span> <span class="p">:</span> <span class="s">"Time (s)"</span><span class="p">,</span>
+                              <span class="s">"T"</span>    <span class="p">:</span> <span class="s">"T ext"</span><span class="p">,</span>
+                              <span class="s">"HR"</span>   <span class="p">:</span> <span class="s">"RH ext"</span><span class="p">,</span>
+                              <span class="s">"h_t"</span>  <span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+                              <span class="s">"h_m"</span>  <span class="p">:</span> <span class="mi">0</span><span class="p">})</span>
+<span class="n">clim</span> <span class="o">=</span> <span class="p">[</span><span class="n">clim1</span><span class="p">,</span> <span class="n">clim2</span><span class="p">]</span>
+</code></pre></div></div>
+
+<h3 id="initial-conditions-and-time-step-size">Initial conditions and time step size</h3>
+
+<p>The last two objects to be provided to the algorithm are: a dictionary of initial conditions, and a <code class="language-plaintext highlighter-rouge">Time</code> objects that contains the information for time discretisation. The time step size can be chosen as constant, or as adaptative in order to be automatically refined when convergence fails. In the following, the latter option was chosen.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">hamopy.classes</span> <span class="kn">import</span> <span class="n">Time</span>
+
+<span class="c1"># Initial conditions are uniform here
+</span><span class="n">init</span> <span class="o">=</span> <span class="p">{</span><span class="s">'T'</span>  <span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s">'T'</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+        <span class="s">'HR'</span> <span class="p">:</span> <span class="mf">0.065</span><span class="p">}</span>
+
+<span class="c1"># Variable time step size, with a minimal and maximal possible size
+</span><span class="n">time</span> <span class="o">=</span> <span class="n">Time</span><span class="p">(</span><span class="s">'variable'</span><span class="p">,</span><span class="o">**</span><span class="p">{</span><span class="s">"delta_t"</span>  <span class="p">:</span> <span class="mi">600</span><span class="p">,</span>
+                          <span class="s">"t_max"</span>    <span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s">'Time (s)'</span><span class="p">]</span><span class="o">.</span><span class="nb">max</span><span class="p">(),</span>
+                          <span class="s">"iter_max"</span> <span class="p">:</span> <span class="mi">12</span><span class="p">,</span>
+                          <span class="s">"delta_min"</span><span class="p">:</span> <span class="mf">1e-3</span><span class="p">,</span>
+                          <span class="s">"delta_max"</span><span class="p">:</span> <span class="mi">3600</span> <span class="p">}</span> <span class="p">)</span>
+</code></pre></div></div>
+
+<h3 id="first-run-and-comparison-with-the-data">First run and comparison with the data</h3>
+
+<p>We can now run a calculation of moisture transfer in the sample, in all the conditions that we just defined.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">from</span> <span class="nn">hamopy.algorithm</span> <span class="kn">import</span> <span class="n">calcul</span>
+<span class="kn">from</span> <span class="nn">hamopy.postpro</span> <span class="kn">import</span> <span class="n">evolution</span><span class="p">,</span> <span class="n">distribution</span>
+<span class="kn">import</span> <span class="nn">hamopy.ham_library</span> <span class="k">as</span> <span class="n">ham</span>
+
+<span class="c1"># The simulation
+</span><span class="n">result</span> <span class="o">=</span> <span class="n">calcul</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">clim</span><span class="p">,</span> <span class="n">init</span><span class="p">,</span> <span class="n">time</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>After the simulation is done, results can be retrieved by using two functions available in the <code class="language-plaintext highlighter-rouge">postpro</code> module:</p>
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">evolution</code> returns the evolution in time of one quantity in one location.</li>
+  <li><code class="language-plaintext highlighter-rouge">distribution</code> returns the distribution across the sample of one quantity in one time coordinate.</li>
+</ul>
+
+<p>We use the former to draw the evolution of relative humidity at the bottom of the sample, which we will compare with measurements. We use the latter to calculate the total moisture content of the sample at each time step, which we will compare with the measured evolution of its weight.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">x_out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+<span class="n">t_out</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s">'Time (s)'</span><span class="p">]</span>
+
+<span class="c1"># Evolution of humidity, at the coordinate h (bottom of the sample)
+</span><span class="n">H</span> <span class="o">=</span> <span class="n">evolution</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s">'HR'</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">t_out</span><span class="p">)</span>
+
+<span class="c1"># Total moisture content at each time step
+</span><span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">t_out</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">t_out</span><span class="p">):</span>
+    <span class="c1"># Distribution of humidity, temperature and moisture content
+</span>    <span class="n">hum</span> <span class="o">=</span> <span class="n">distribution</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s">'HR'</span><span class="p">,</span> <span class="n">x_out</span><span class="p">,</span> <span class="n">t_</span><span class="p">)</span>
+    <span class="n">tem</span> <span class="o">=</span> <span class="n">distribution</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s">'T'</span><span class="p">,</span> <span class="n">x_out</span><span class="p">,</span> <span class="n">t_</span><span class="p">)</span>
+    <span class="n">w_distrib</span> <span class="o">=</span> <span class="n">wood_fibre</span><span class="o">.</span><span class="n">w</span><span class="p">(</span><span class="n">ham</span><span class="o">.</span><span class="n">p_c</span><span class="p">(</span><span class="n">hum</span><span class="p">,</span><span class="n">tem</span><span class="p">),</span> <span class="n">tem</span><span class="p">)</span>
+    <span class="c1"># Integrating the moisture content over the entire sample
+</span>    <span class="n">W</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trapz</span><span class="p">(</span><span class="n">y</span> <span class="o">=</span> <span class="n">w_distrib</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">x_out</span><span class="p">)</span>
+
+<span class="c1"># Integrating over the volume of the sample
+</span><span class="n">W</span> <span class="o">*=</span> <span class="n">W</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">D</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="mi">4</span><span class="o">*</span><span class="mi">1000</span> <span class="c1"># pour passer de (kg/m2) a des (g)
+</span><span class="n">W</span> <span class="o">-=</span> <span class="n">W</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+
+<span class="n">teal</span> <span class="o">=</span> <span class="s">'#029386'</span>
+<span class="n">orange</span> <span class="o">=</span> <span class="s">'#F97306'</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">121</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_out</span><span class="o">/</span><span class="mi">3600</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s">'RH1'</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s">'data'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">teal</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_out</span><span class="o">/</span><span class="mi">3600</span><span class="p">,</span> <span class="n">H</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'prediction'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">orange</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Time (h)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'Relative humidity'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">122</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_out</span><span class="o">/</span><span class="mi">3600</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s">'Mass (g)'</span><span class="p">]</span> <span class="o">-</span> <span class="n">df</span><span class="p">[</span><span class="s">'Mass (g)'</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s">'data'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">teal</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_out</span><span class="o">/</span><span class="mi">3600</span><span class="p">,</span> <span class="n">W</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'prediction'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">orange</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Time (h)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'Water content (kg/m3)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><img src="images/data/mat_hygric_output1.png" style="width: 700px;" /></p>
+
+<p>Clearly, the simulation does not match measurements: we have greatly underestimated the moisture permeability. The moisture capacity, or sorption isotherm, might be in a correct range, although the experiment does not last long enough to reach a steady state.</p>
+
+<h2 id="hygric-characterisation-by-curve-fitting">Hygric characterisation by curve fitting</h2>
+
+<p>Now that an example of simulation with hamopy was demonstrated, we can use this workflow to estimate the values of material properties that will let the model output best match the data.</p>
+
+<h3 id="objective-function">Objective function</h3>
+
+<p>We first need to define a cost function, which will simulate the experiment using a set of parameters. In the definition of the material above, we defined the dynamics of moisture transfer with six values :</p>
+<ul>
+  <li>the surface transfer coefficient <code class="language-plaintext highlighter-rouge">h_m</code>.</li>
+  <li>the moisture permeability, defined by two values <code class="language-plaintext highlighter-rouge">dp_1</code> and <code class="language-plaintext highlighter-rouge">dp_2</code> from which a profile is extrapolated.</li>
+  <li>the sorption isotherm, defined by three values <code class="language-plaintext highlighter-rouge">xi_1</code>, <code class="language-plaintext highlighter-rouge">xi_2</code> and <code class="language-plaintext highlighter-rouge">xi_3</code> from which a profile is extrapolated.</li>
+</ul>
+
+<p>These properties form a list of six unknown parameters that will be estimated by the optimisation algorithm. They are passed as arguments of a <code class="language-plaintext highlighter-rouge">simulation</code> function which will return the evolutions of humidity and moisture content in the sample. This function will then be fitted to match the data.</p>
+
+<p>Since we are using two types of measurements for curve fitting (relative humidity and moisture content), they should be scaled in order to have comparable ranges, and therefore a comparable weight in the calculation of the objective function (the sum of squared residuals).</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">scale_H</span> <span class="o">=</span> <span class="mf">0.01</span>
+<span class="n">scale_W</span> <span class="o">=</span> <span class="mf">0.1</span>
+
+<span class="k">def</span> <span class="nf">simulation</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">h_m</span><span class="p">,</span> <span class="n">dp_1</span><span class="p">,</span> <span class="n">dp_2</span><span class="p">,</span> <span class="n">xi_1</span><span class="p">,</span> <span class="n">xi_2</span><span class="p">,</span> <span class="n">xi_3</span><span class="p">):</span>
+
+    <span class="c1"># Some parameters are scaled so that they all have similar ranges
+</span>    <span class="n">h_m</span> <span class="o">*=</span> <span class="mf">1e-9</span>
+    <span class="n">dp_1</span> <span class="o">*=</span> <span class="mf">1e-10</span>
+    <span class="n">dp_2</span> <span class="o">*=</span> <span class="mf">1e-10</span>
+
+    <span class="c1"># Changing the transfer coefficient in the boundary condition
+</span>    <span class="n">clim</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">[</span><span class="s">'h_m'</span><span class="p">]</span> <span class="o">=</span> <span class="n">h_m</span>
+
+    <span class="c1"># Defining the material and the mesh object
+</span>    <span class="n">m</span> <span class="o">=</span> <span class="n">Material</span><span class="p">(</span><span class="s">'isolant'</span><span class="p">,</span> <span class="n">rho</span> <span class="o">=</span> <span class="mf">200.</span><span class="p">,</span> <span class="n">cp</span> <span class="o">=</span> <span class="mf">2000.</span><span class="p">)</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">set_conduc</span><span class="p">(</span><span class="n">lambda_0</span> <span class="o">=</span> <span class="mf">0.05</span><span class="p">,</span> <span class="n">lambda_m</span> <span class="o">=</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">lambda_t</span> <span class="o">=</span> <span class="mf">0.1e-3</span><span class="p">)</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">set_perm_vapor</span><span class="p">(</span><span class="s">'interp'</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span><span class="s">"HR"</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">],</span>
+                                  <span class="s">"dp"</span> <span class="p">:</span> <span class="p">[</span><span class="n">dp_1</span><span class="p">,</span> <span class="n">dp_2</span><span class="p">]</span> <span class="p">}</span> <span class="p">)</span>
+    <span class="n">m</span><span class="o">.</span><span class="n">set_isotherm</span><span class="p">(</span><span class="s">'slope'</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span><span class="s">"HR"</span> <span class="p">:</span> <span class="p">[</span><span class="mf">0.25</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.75</span><span class="p">],</span>
+                               <span class="s">"XI"</span> <span class="p">:</span> <span class="p">[</span><span class="n">xi_1</span><span class="p">,</span> <span class="n">xi_2</span><span class="p">,</span> <span class="n">xi_3</span><span class="p">]</span>  <span class="p">}</span> <span class="p">)</span>
+    <span class="n">mesh</span> <span class="o">=</span> <span class="n">Mesh</span><span class="p">(</span><span class="o">**</span><span class="p">{</span><span class="s">"materials"</span>    <span class="p">:</span> <span class="p">[</span><span class="n">m</span><span class="p">],</span>
+                   <span class="s">"sizes"</span>        <span class="p">:</span> <span class="p">[</span><span class="n">h</span><span class="p">],</span>
+                   <span class="s">"nbr_elements"</span> <span class="p">:</span> <span class="p">[</span><span class="mi">23</span><span class="p">]</span> <span class="p">})</span>
+
+    <span class="c1"># Simulation
+</span>    <span class="n">res</span> <span class="o">=</span> <span class="n">calcul</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">clim</span><span class="p">,</span> <span class="n">init</span><span class="p">,</span> <span class="n">time</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">res</span><span class="p">[</span><span class="s">'t'</span><span class="p">]</span><span class="o">.</span><span class="nb">max</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">df</span><span class="p">[</span><span class="s">'Time (s)'</span><span class="p">]</span><span class="o">.</span><span class="nb">max</span><span class="p">():</span>
+        <span class="c1"># If the simulation has been interrupted before the end, return zeros
+</span>        <span class="k">print</span><span class="p">(</span><span class="s">'One of the simulations has failed </span><span class="se">\n</span><span class="s">'</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># Output 1: relative humidity at the bottom of the sample
+</span>        <span class="n">H</span> <span class="o">=</span> <span class="n">evolution</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="s">'HR'</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s">'Time (s)'</span><span class="p">])</span>
+
+        <span class="c1"># Output 2: weight gain of the sample
+</span>        <span class="n">x_out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span>
+        <span class="n">W</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">t_</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s">'Time (s)'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">):</span>
+            <span class="c1"># Distribution of humidity, temperature and moisture content
+</span>            <span class="n">hum</span> <span class="o">=</span> <span class="n">distribution</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s">'HR'</span><span class="p">,</span> <span class="n">x_out</span><span class="p">,</span> <span class="n">t_</span><span class="p">)</span>
+            <span class="n">tem</span> <span class="o">=</span> <span class="n">distribution</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="s">'T'</span><span class="p">,</span> <span class="n">x_out</span><span class="p">,</span> <span class="n">t_</span><span class="p">)</span>
+            <span class="n">w_distrib</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">w</span><span class="p">(</span><span class="n">ham</span><span class="o">.</span><span class="n">p_c</span><span class="p">(</span><span class="n">hum</span><span class="p">,</span><span class="n">tem</span><span class="p">),</span> <span class="n">tem</span><span class="p">)</span>
+            <span class="c1"># Integrating the moisture content over the entire sample
+</span>            <span class="n">W</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">trapz</span><span class="p">(</span><span class="n">y</span> <span class="o">=</span> <span class="n">w_distrib</span><span class="p">,</span> <span class="n">x</span> <span class="o">=</span> <span class="n">x_out</span><span class="p">)</span>
+        <span class="c1"># Integrating over the surface of the sample
+</span>        <span class="n">W</span> <span class="o">*=</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">*</span><span class="n">D</span><span class="o">**</span><span class="mi">2</span><span class="o">/</span><span class="mi">4</span><span class="o">*</span><span class="mi">1000</span>
+        <span class="n">W</span> <span class="o">-=</span> <span class="n">W</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># Scaling both outputs to similar ranges
+</span>        <span class="n">H</span> <span class="o">/=</span> <span class="n">scale_H</span>
+        <span class="n">W</span> <span class="o">/=</span> <span class="n">scale_W</span>
+
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">H</span><span class="p">,</span> <span class="n">W</span><span class="p">))</span>
+</code></pre></div></div>
+
+<h3 id="curve-fitting">Curve fitting</h3>
+
+<p>Now we just have to start the algorithm for curve fitting. It is the <code class="language-plaintext highlighter-rouge">curve_fit</code> method of the <code class="language-plaintext highlighter-rouge">scipy.optimize</code> package, and pretty simple to operate. It returns the least square estimator as <code class="language-plaintext highlighter-rouge">popt</code> and its covariance matrix as <code class="language-plaintext highlighter-rouge">pcov</code>.</p>
+
+<p>These few lines may take a few minutes to run, depending on whether the initial guess is accurate or not.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Initial guess
+</span><span class="n">p_init</span> <span class="o">=</span>  <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">50</span><span class="p">]</span>
+
+<span class="c1"># Data with which to match the model output
+</span><span class="n">y_rh</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s">'RH1'</span><span class="p">]</span> <span class="o">/</span> <span class="n">scale_H</span>
+<span class="n">y_w</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s">'Mass (g)'</span><span class="p">]</span> <span class="o">-</span> <span class="n">df</span><span class="p">[</span><span class="s">'Mass (g)'</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">/</span> <span class="n">scale_W</span>
+<span class="n">data_y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">y_rh</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">y_w</span><span class="o">.</span><span class="n">values</span><span class="p">))</span>  <span class="c1"># output to be fitted on
+</span>
+<span class="c1"># Fitting
+</span><span class="kn">from</span> <span class="nn">scipy.optimize</span> <span class="kn">import</span> <span class="n">curve_fit</span>
+<span class="n">popt</span><span class="p">,</span> <span class="n">pcov</span> <span class="o">=</span> <span class="n">curve_fit</span><span class="p">(</span><span class="n">simulation</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">ydata</span><span class="o">=</span><span class="n">data_y</span><span class="p">,</span> <span class="n">p0</span> <span class="o">=</span> <span class="n">p_init</span><span class="p">)</span>
+</code></pre></div></div>
+
+<p>Some simulations may fail because no bounds were passed to the search algorithm. Nevertheless, it should converge to reasonable values.</p>
+
+<h3 id="plotting-results">Plotting results</h3>
+
+<p>In order to visualise how well the model fits the data, let us run one last simulation with the optimal parameters as input, and plot its results versus measurement data.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">print</span><span class="p">(</span><span class="n">popt</span><span class="p">)</span>
+
+<span class="n">opt_calc</span> <span class="o">=</span> <span class="n">simulation</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="n">popt</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">popt</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">popt</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">popt</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">popt</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="n">popt</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span>
+
+<span class="n">opt_H</span> <span class="o">=</span> <span class="n">opt_calc</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)]</span> <span class="o">*</span> <span class="n">scale_H</span>
+<span class="n">opt_W</span> <span class="o">=</span> <span class="n">opt_calc</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">):]</span> <span class="o">*</span> <span class="n">scale_W</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">121</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_out</span><span class="o">/</span><span class="mi">3600</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s">'RH1'</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s">'data'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">teal</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_out</span><span class="o">/</span><span class="mi">3600</span><span class="p">,</span> <span class="n">opt_H</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'prediction'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">orange</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Time (h)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'Relative humidity'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplot</span><span class="p">(</span><span class="mi">122</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_out</span><span class="o">/</span><span class="mi">3600</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s">'Mass (g)'</span><span class="p">]</span> <span class="o">-</span> <span class="n">df</span><span class="p">[</span><span class="s">'Mass (g)'</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s">'data'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">teal</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">t_out</span><span class="o">/</span><span class="mi">3600</span><span class="p">,</span> <span class="n">opt_W</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'prediction'</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">orange</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Time (h)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'Water content (kg/m3)'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[5.70299814e+02 1.44352967e+00 1.66159626e-01 1.37298172e+01
+ 3.60807707e+01 1.29408100e+02]
+</code></pre></div></div>
+
+<p><img src="images/data/mat_hygric_output2.png" style="width: 700px;" /></p>
 
 
     <div class="tags">
@@ -399,7 +785,7 @@ $('#toc').on('click', 'a', function() {
             <div class="row">
                 <div class="col-lg-12 footer">
                &copy;2020 USMB. All rights reserved. <br />
-<span>Page last updated:</span> March 29, 2020<br/> Site last generated: Apr 5, 2020 <br />
+<span>Page last updated:</span> March 29, 2020<br/> Site last generated: Apr 7, 2020 <br />
 <p><img src="images/company_logo.png" alt="Company logo"/></p>
                 </div>
             </div>

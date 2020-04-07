@@ -1,5 +1,5 @@
 ---
-title: This is the title
+title: Estimating natural convection
 tags: [tag1, tag2, tag3]
 keywords: keyword1, keyword2, keyword3
 last_updated: March 28, 2020
@@ -11,10 +11,4 @@ permalink: conv_nat.html
 ---
 
 
-## Second level section heading
-
-### Third level section heading
-
-Placeholder page
-
-{% include links.html %}
+Placeholder text

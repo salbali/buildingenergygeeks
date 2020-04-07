@@ -34,26 +34,3 @@ $$ m_{as,3} \, T_3 = m_{as,1} \, T_1 + m_{as,2} \, T_2 $$
 $$ m_{as,3} \, r_3 = m_{as,1} \, r_1 + m_{as,2} \, r_2 $$
 
 $$ m_{as,3} \, h_3 = m_{as,1} \, h_1 + m_{as,2} \, h_2 $$
-
-## Exercices
-
-<ul id="profileTabs" class="nav nav-tabs">
-    <li class="active"><a class="noCrossRef" href="#enonce" data-toggle="tab">Enoncé</a></li>
-    <li><a class="noCrossRef" href="#correction" data-toggle="tab">Correction</a></li>
-</ul>
-
-<div class="tab-content">
-
-<div role="tabpanel" class="tab-pane active" id="enonce" markdown="1">
-
-Enoncé
-
-</div>
-
-<div role="tabpanel" class="tab-pane" id="correction" markdown="1">
-
-Correction
-
-</div>
-
-</div>

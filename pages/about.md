@@ -10,12 +10,8 @@ permalink: about.html
 #folder: mydoc
 ---
 
-About the author
+The author of this website is [Simon Rouchier](http://simonrouchier.org/), lecturer at Université Savoie Mont-Blanc, France.
 
 I got a masters in thermodynamics, then studied heat transfer in buildings and their energy performance during my Ph.D., and got into data analysis after that. My background on statistics and data science is thus rather recent, and I realised that we in the building energy field tend to lack some background when playing with data.
 
-This website comes in two categories
-* The [data analysis section](/index_data.html) shows
-showing simple practical applications of statistical learning to building energy science could be useful to those who
-
-{% include links.html %}
+I made this website as a series of separate tutorials, meant to guide the reader from very basic concepts to more complex ones. The website should gradually grow as I add sections and content. Don't hesitate to contact me through the [forum](http://discourse.buildingenergygeeks.org/) or by e-mail for requests and suggestions.
